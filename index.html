@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario GPS</title>
+
+    <link rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+   <style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f9;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #003366;
+        margin-bottom: 25px;
+    }
+
+    form {
+        background: #ffffff;
+        padding: 25px;
+        max-width: 600px;
+        margin: auto;
+        border-radius: 8px;
+    }
+
+    .fila {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    input, select, textarea {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+    }
+
+    #map {
+        height: 300px;
+        margin-top: 15px;
+    }
+</style>
+</head>
+
+<body>
+
+<h1 style="text-align:center; color:#003366;">
+    Registro de Marcación Institucional con GPS
+</h1>
+<form id="gpsForm">
+
+    <div class="fila">
+        <label>Nombres y apellidos</label>
+        <input type="text" id="responsable" name="responsable" required>
+    </div>
+
+    <div class="fila">
+        <label>Nombre de la institución</label>
+        <input type="text" id="institucion" name="institucion" required>
+    </div>
+
+    <div class="fila">
+        <label>Tipo de marcación</label>
+        <select id="tipo_marcacion" name="tipo_marcacion" required>
+            <option value="">Seleccione una opción</option>
+            <option value="entrada">Hora de entrada laboral</option>
+            <option value="salida_almuerzo">Hora de salida al almuerzo</option>
+            <option value="retorno_almuerzo">Hora de retorno del almuerzo</option>
+            <option value="salida">Hora de salida laboral</option>
+        </select>
+    </div>
+
+    <div class="fila">
+        <label>Latitud</label>
+        <input type="text" id="latitud" name="latitud" readonly>
+    </div>
+
+    <div class="fila">
+        <label>Longitud</label>
+        <input type="text" id="longitud" name="longitud" readonly>
+    </div>
+
+    <div id="map"></div>
+
+    <div class="fila">
+        <button type="button" onclick="obtenerUbicacion()">
+            Obtener ubicación GPS
+        </button>
+    </div>
+<div class="fila">
+    <button type="button" onclick="enviarMarcacion()">
+        Registrar marcación
+    </button>
+</div>
+</form>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
