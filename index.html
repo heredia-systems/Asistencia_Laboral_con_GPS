@@ -154,5 +154,23 @@
 <!-- Script JS -->
 <script src="script.js"></script>
 
+<!-- GOOGLE SIGN-IN Y VALIDACIÓN DE DOMINIOS -->
+<script>
+function handleCredentialResponse(response) {
+    const data = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = data.email.toLowerCase();
+
+    // Solo se permiten estos dominios
+    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
+        alert("Correo no autorizado");
+        return;
+    }
+
+    // Asignar correo al formulario
+    document.getElementById("correo").value = email;
+    alert("Sesión iniciada como: " + email);
+}
+</script>
+
 </body>
 </html>
