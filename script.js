@@ -3,7 +3,7 @@ let marker;
 let ubicacionConfirmada = false;
 let imagenBase64 = ""; // Variable global para la imagen
 
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbweeOpMdKvHcMewRhzOU1S_samFZlG7umyzb_4FkqpsdAORFQjGXQmmtVtIsgUDWgRA/exec";
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzRPNiKYsEoqAgAIiV-rx4Sq3mrN88VBRHV7u8s5EIH81RqE3eoFxDXs3Rlv13TE4Kx/exec";
 
 function obtenerUbicacion() {
     if (!navigator.geolocation) {
@@ -42,7 +42,7 @@ function obtenerUbicacion() {
     );
 }
 
-// Función para capturar la imagen
+// Captura de video
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
     const video = document.getElementById("video");
@@ -52,13 +52,39 @@ navigator.mediaDevices.getUserMedia({ video: true })
     mostrarMensaje("No se puede acceder a la cámara: " + err, false);
 });
 
+// Función para capturar la foto como miniatura de buena calidad
 function tomarFoto() {
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext("2d").drawImage(video, 0, 0);
-    imagenBase64 = canvas.toDataURL("image/png");
+
+    // Tamaño máximo razonable (para que la imagen no sea enorme, pero conserve calidad)
+    const MAX_WIDTH = 400;
+    const MAX_HEIGHT = 400;
+
+    let width = video.videoWidth;
+    let height = video.videoHeight;
+
+    // Mantener proporción
+    if (width > height) {
+        if (width > MAX_WIDTH) {
+            height = Math.round(height * MAX_WIDTH / width);
+            width = MAX_WIDTH;
+        }
+    } else {
+        if (height > MAX_HEIGHT) {
+            width = Math.round(width * MAX_HEIGHT / height);
+            height = MAX_HEIGHT;
+        }
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, width, height);
+
+    // Convertir a JPEG con buena calidad
+    imagenBase64 = canvas.toDataURL("image/jpeg", 0.8);
+
     mostrarMensaje("Imagen capturada correctamente", true);
 }
 
@@ -130,4 +156,18 @@ function handleCredentialResponse(response) {
 
     document.getElementById("correo").value = email;
     mostrarMensaje("Sesión iniciada como: " + email, true);
+}
+
+// Mostrar mensajes
+function mostrarMensaje(texto, exito) {
+    const div = document.getElementById("mensaje");
+    div.style.display = "block";
+    div.textContent = "";
+
+    const span = document.createElement("span");
+    span.textContent = exito ? "✔" : "✖";
+    div.appendChild(span);
+    div.appendChild(document.createTextNode(texto));
+
+    div.className = exito ? "exito" : "error";
 }
