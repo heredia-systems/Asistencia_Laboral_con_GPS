@@ -2,6 +2,9 @@ let map;
 let marker;
 let ubicacionConfirmada = false;
 
+// 🔗 PEGA AQUÍ LA URL DE TU WEB APP
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwBgqPAvcf-BLDpn2mfQhkTVy3sBftRFXjtEAZxGDUO2S7B6SQ_TdFgnpdtCHyuRYUm/exec";
+
 function obtenerUbicacion() {
 
     if (!navigator.geolocation) {
@@ -11,6 +14,7 @@ function obtenerUbicacion() {
 
     navigator.geolocation.getCurrentPosition(
         function (pos) {
+
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
 
@@ -24,9 +28,7 @@ function obtenerUbicacion() {
                 }).addTo(map);
             }
 
-            if (marker) {
-                map.removeLayer(marker);
-            }
+            if (marker) map.removeLayer(marker);
 
             marker = L.marker([lat, lon]).addTo(map);
             map.setView([lat, lon], 17);
@@ -46,34 +48,46 @@ function enviarMarcacion() {
         return;
     }
 
+    const correo = document.getElementById("correo").value;
     const responsable = document.getElementById("responsable").value;
     const institucion = document.getElementById("institucion").value;
     const tipo = document.getElementById("tipo_marcacion").value;
     const lat = document.getElementById("latitud").value;
     const lon = document.getElementById("longitud").value;
 
-    if (!responsable || !institucion || !tipo) {
+    if (!correo || !responsable || !institucion || !tipo) {
         alert("Complete todos los campos obligatorios.");
         return;
     }
 
-    const url = "https://script.google.com/macros/s/AKfycbyDXeHOmL3h3k2gwsyP3JBrjkHQ52CI2Hns1uqLkYBZirtY_rALw-EGEAjeUnv5Zbro/exec";
-
     const formData = new FormData();
+    formData.append("correo", correo);
     formData.append("responsable", responsable);
     formData.append("institucion", institucion);
     formData.append("tipo_marcacion", tipo);
     formData.append("latitud", lat);
     formData.append("longitud", lon);
 
-    fetch(url, {
+    fetch(URL_WEB_APP, {
         method: "POST",
-        body: formData,
-        mode: "no-cors"
+        body: formData
+    })
+    .then(res => res.text())
+    .then(respuesta => {
+
+        if (respuesta === "OK") {
+            alert("✅ Marcación registrada correctamente.");
+        } else if (respuesta === "DUPLICADO") {
+            alert("⚠️ Ya existe una marcación de este tipo hoy.");
+        } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {
+            alert("❌ Correo institucional no autorizado.");
+        } else {
+            alert("❌ Error: " + respuesta);
+        }
+
+    })
+    .catch(error => {
+        alert("❌ Error de conexión con el servidor.");
+        console.error(error);
     });
-
-    alert("Marcación enviada correctamente. Verifique en la hoja.");
-
-    // opcional: limpiar formulario
-    // document.getElementById("gpsForm").reset();
 }

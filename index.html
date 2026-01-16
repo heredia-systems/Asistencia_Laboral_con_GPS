@@ -2,106 +2,176 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Formulario GPS</title>
+    <title>Formulario GPS – Ministerio de Educación</title>
 
+    <!-- Leaflet -->
     <link rel="stylesheet"
           href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-   <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f4f6f9;
-        padding: 20px;
-    }
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    h1 {
-        text-align: center;
-        color: #003366;
-        margin-bottom: 25px;
+    <!-- FUNCIÓN GOOGLE LOGIN (DEBE IR AQUÍ ARRIBA) -->
+    <script>
+    function handleCredentialResponse(response) {
+        const data = JSON.parse(atob(response.credential.split('.')[1]));
+        document.getElementById("correo").value = data.email;
+        alert("Sesión iniciada como: " + data.email);
     }
+    </script>
 
-    form {
-        background: #ffffff;
-        padding: 25px;
-        max-width: 600px;
-        margin: auto;
-        border-radius: 8px;
-    }
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-image: url("https://i.imgur.com/IiSa0F2.jpeg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
 
-    .fila {
-        margin-bottom: 15px;
-    }
+        .overlay {
+            min-height: 100vh;
+            background-color: rgba(0, 51, 102, 0.55);
+            padding-bottom: 40px;
+        }
 
-    label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
+        .banner {
+            width: 100%;
+            background-color: #ffffff;
+            text-align: center;
+            padding: 10px 0;
+        }
 
-    input, select, textarea {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-    }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin: 25px 15px;
+        }
 
-    #map {
-        height: 300px;
-        margin-top: 15px;
-    }
-</style>
+        form {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 25px;
+            max-width: 620px;
+            margin: auto;
+            border-radius: 10px;
+        }
+
+        .fila {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 9px;
+            box-sizing: border-box;
+        }
+
+        input[readonly] {
+            background-color: #f2f2f2;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #f4b400;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #map {
+            height: 300px;
+            margin-top: 15px;
+        }
+    </style>
 </head>
 
 <body>
 
-<h1 style="text-align:center; color:#003366;">
-    Registro de Marcación Institucional con GPS
-</h1>
-<form id="gpsForm">
+<div class="overlay">
 
-    <div class="fila">
-        <label>Nombres y apellidos</label>
-        <input type="text" id="responsable" name="responsable" required>
+    <div class="banner">
+        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png">
     </div>
 
-    <div class="fila">
-        <label>Nombre de la institución</label>
-        <input type="text" id="institucion" name="institucion" required>
+    <h1>Registro de Marcación Institucional con GPS</h1>
+
+    <!-- 🔐 LOGIN GOOGLE -->
+    <div style="text-align:center; margin-bottom:15px;">
+        <div id="g_id_onload"
+             data-client_id="942537115951-3iom1kgrq385tvcofnovdv769sgafsb5.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="signin_with"
+             data-shape="rectangular">
+        </div>
     </div>
 
-    <div class="fila">
-        <label>Tipo de marcación</label>
-        <select id="tipo_marcacion" name="tipo_marcacion" required>
-            <option value="">Seleccione una opción</option>
-            <option value="entrada">Hora de entrada laboral</option>
-            <option value="salida_almuerzo">Hora de salida al almuerzo</option>
-            <option value="retorno_almuerzo">Hora de retorno del almuerzo</option>
-            <option value="salida">Hora de salida laboral</option>
-        </select>
-    </div>
+    <form id="gpsForm">
 
-    <div class="fila">
-        <label>Latitud</label>
-        <input type="text" id="latitud" name="latitud" readonly>
-    </div>
+        <div class="fila">
+            <label>Correo institucional</label>
+            <input type="email" id="correo" readonly required>
+        </div>
 
-    <div class="fila">
-        <label>Longitud</label>
-        <input type="text" id="longitud" name="longitud" readonly>
-    </div>
+        <div class="fila">
+            <label>Nombres y apellidos</label>
+            <input type="text" id="responsable" required>
+        </div>
 
-    <div id="map"></div>
+        <div class="fila">
+            <label>Institución</label>
+            <input type="text" id="institucion" required>
+        </div>
 
-    <div class="fila">
-        <button type="button" onclick="obtenerUbicacion()">
-            Obtener ubicación GPS
-        </button>
-    </div>
-<div class="fila">
-    <button type="button" onclick="enviarMarcacion()">
-        Registrar marcación
-    </button>
+        <div class="fila">
+            <label>Tipo de marcación</label>
+            <select id="tipo_marcacion" required>
+                <option value="">Seleccione</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida_almuerzo">Salida almuerzo</option>
+                <option value="retorno_almuerzo">Retorno almuerzo</option>
+                <option value="salida">Salida laboral</option>
+            </select>
+        </div>
+
+        <input type="hidden" id="latitud">
+        <input type="hidden" id="longitud">
+
+        <div id="map"></div>
+
+        <div class="fila">
+            <button type="button" onclick="obtenerUbicacion()">
+                Obtener ubicación
+            </button>
+        </div>
+
+        <div class="fila">
+            <button type="button" onclick="enviarMarcacion()">
+                Registrar marcación
+            </button>
+        </div>
+
+    </form>
 </div>
-</form>
+
+<!-- LIBRERÍAS Y TU JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="script.js"></script>
 
