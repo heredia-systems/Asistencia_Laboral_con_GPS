@@ -5,46 +5,23 @@ let ubicacionConfirmada = false;
 // 🔗 URL del Web App de Google Apps Script
 const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyEqwE8Bj-g5mU45I_0bIv-bB_XYiMkPCwyvb3LvOlq9_n6isTe2UmwkAtuOIL8OWWg/exec";
 
-function obtenerUbicacion() {
+// Función para mostrar mensajes en el div con X roja o ✔ verde
+function mostrarMensaje(texto, exito) {
+    const div = document.getElementById("mensaje");
+    div.style.display = "block";
+    div.textContent = ""; // limpiar
 
-    if (!navigator.geolocation) {
-        alert("Tu navegador no soporta geolocalización");
-        return;
-    }
+    const span = document.createElement("span");
+    span.textContent = exito ? "✔" : "✖";
+    div.appendChild(span);
+    div.appendChild(document.createTextNode(texto));
 
-    navigator.geolocation.getCurrentPosition(
-        function (pos) {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-
-            document.getElementById("latitud").value = lat;
-            document.getElementById("longitud").value = lon;
-
-            if (!map) {
-                map = L.map("map").setView([lat, lon], 17);
-                L…
-[13:03, 16/1/2026] Ing. Carlos Heredia: ---
-[13:03, 16/1/2026] Ing. Carlos Heredia: let map;
-let marker;
-let ubicacionConfirmada = false;
-
-// 🔗 URL del Web App de Google Apps Script
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyEqwE8Bj-g5mU45I_0bIv-bB_XYiMkPCwyvb3LvOlq9_n6isTe2UmwkAtuOIL8OWWg/exec";
-
-function mostrarMensaje(texto, tipo) {
-    const mensajeDiv = document.getElementById("mensaje");
-    mensajeDiv.style.display = "block";
-    mensajeDiv.className = tipo; // "error" o "exito"
-    if(tipo === "exito"){
-        mensajeDiv.innerHTML = <span>✔</span>${texto};
-    } else {
-        mensajeDiv.innerHTML = <span>❌</span>${texto};
-    }
+    div.className = exito ? "exito" : "error";
 }
 
 function obtenerUbicacion() {
     if (!navigator.geolocation) {
-        mostrarMensaje("Tu navegador no soporta geolocalización", "error");
+        mostrarMensaje("Tu navegador no soporta geolocalización", false);
         return;
     }
 
@@ -71,10 +48,10 @@ function obtenerUbicacion() {
             map.setView([lat, lon], 17);
 
             ubicacionConfirmada = true;
-            mostrarMensaje("Ubicación obtenida correctamente", "exito");
+            mostrarMensaje("Ubicación obtenida correctamente", true);
         },
         function () {
-            mostrarMensaje("No se pudo obtener la ubicación GPS", "error");
+            mostrarMensaje("No se pudo obtener la ubicación GPS", false);
         }
     );
 }
@@ -82,7 +59,7 @@ function obtenerUbicacion() {
 function enviarMarcacion() {
 
     if (!ubicacionConfirmada) {
-        mostrarMensaje("Debe obtener la ubicación GPS antes de registrar.", "error");
+        mostrarMensaje("Debe obtener la ubicación GPS antes de registrar.", false);
         return;
     }
 
@@ -94,7 +71,7 @@ function enviarMarcacion() {
     const correo = document.getElementById("correo").value;
 
     if (!responsable || !institucion || !tipo || !correo) {
-        mostrarMensaje("Complete todos los campos obligatorios.", "error");
+        mostrarMensaje("Complete todos los campos obligatorios.", false);
         return;
     }
 
@@ -114,20 +91,20 @@ function enviarMarcacion() {
     .then(respuesta => {
 
         if (respuesta === "OK") {
-            mostrarMensaje("Marcación registrada correctamente.", "exito");
+            mostrarMensaje("Marcación registrada correctamente", true);
         } else if (respuesta === "DUPLICADO") {
-            mostrarMensaje("Ya existe una marcación de este tipo hoy.", "error");
+            mostrarMensaje("Ya existe una marcación de este tipo hoy", false);
         } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {
-            mostrarMensaje("Correo no autorizado.", "error");
+            mostrarMensaje("Correo no autorizado", false);
         } else if (respuesta === "DATOS_INCOMPLETOS") {
-            mostrarMensaje("Faltan datos obligatorios.", "error");
+            mostrarMensaje("Faltan datos obligatorios", false);
         } else {
-            mostrarMensaje("Error: " + respuesta, "error");
+            mostrarMensaje("Error: " + respuesta, false);
         }
 
     })
     .catch(error => {
-        mostrarMensaje("Error de conexión con el servidor.", "error");
+        mostrarMensaje("Error de conexión con el servidor", false);
         console.error(error);
     });
 }
@@ -139,10 +116,10 @@ function handleCredentialResponse(response) {
 
     // Validar dominios permitidos
     if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
-        mostrarMensaje("Correo no autorizado", "error");
+        mostrarMensaje("Correo no autorizado", false);
         return;
     }
 
     document.getElementById("correo").value = email;
-    mostrarMensaje("Sesión iniciada como: " + email, "exito");
+    mostrarMensaje("Sesión iniciada como: " + email, true);
 }
