@@ -1,30 +1,4 @@
-[12:59, 16/1/2026] Ing. Carlos Heredia: <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Formulario GPS – Ministerio de Educación</title>
-
-    <!-- Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-
-    <!-- Google Identity -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background-image: url("https://i.imgur.com/IiSa0F2.jpeg");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        .overlay {
-            min-height: 100vh;
-            background-color: rgba(0, 51, 102, 0.…
-[13:01, 16/1/2026] Ing. Carlos Heredia: ---
-[13:01, 16/1/2026] Ing. Carlos Heredia: <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -102,23 +76,22 @@
             border: 2px solid #003366;
         }
 
-        /* Mensajes de éxito o error */
+        /* Estilos para mensajes */
         #mensaje {
-            margin-top: 15px;
+            margin: 10px 0;
             font-size: 18px;
-            font-weight: bold;
-            text-align: center;
             display: none;
+        }
+        #mensaje span {
+            font-size: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
         }
         #mensaje.exito {
             color: green;
         }
         #mensaje.error {
             color: red;
-        }
-        #mensaje span {
-            font-size: 24px;
-            margin-right: 8px;
         }
     </style>
 </head>
@@ -182,6 +155,9 @@
 
         <div id="map"></div>
 
+        <!-- DIV PARA MENSAJES -->
+        <div id="mensaje"></div>
+
         <div class="fila">
             <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
         </div>
@@ -190,15 +166,16 @@
             <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
         </div>
 
-        <!-- Contenedor de mensajes -->
-        <div id="mensaje"></div>
-
     </form>
 </div>
 
+<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Script JS -->
 <script src="script.js"></script>
 
+<!-- GOOGLE SIGN-IN Y VALIDACIÓN DE DOMINIOS -->
 <script>
 function handleCredentialResponse(response) {
     const data = JSON.parse(atob(response.credential.split('.')[1]));
@@ -206,12 +183,27 @@ function handleCredentialResponse(response) {
 
     // Solo se permiten estos dominios
     if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
-        alert("Correo no autorizado");
+        mostrarMensaje("Correo no autorizado", false);
         return;
     }
 
+    // Asignar correo al formulario
     document.getElementById("correo").value = email;
-    alert("Sesión iniciada como: " + email);
+    mostrarMensaje("Sesión iniciada como: " + email, true);
+}
+
+// Función para mostrar mensajes con X roja o ✔ verde
+function mostrarMensaje(texto, exito) {
+    const div = document.getElementById("mensaje");
+    div.style.display = "block";
+    div.textContent = ""; // limpiar
+
+    const span = document.createElement("span");
+    span.textContent = exito ? "✔" : "✖";
+    div.appendChild(span);
+    div.appendChild(document.createTextNode(texto));
+
+    div.className = exito ? "exito" : "error";
 }
 </script>
 
