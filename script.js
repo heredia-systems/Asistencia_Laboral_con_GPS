@@ -3,7 +3,7 @@ let marker;
 let ubicacionConfirmada = false;
 
 // 🔗 URL del Web App de Google Apps Script
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxIG4eB9TyrFwPs4NXEp3BXb2HcSsRdoVmrhjeO694NFaD3nv9MRxl1Gb6hehSAPVj1/exec";
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbyEqwE8Bj-g5mU45I_0bIv-bB_XYiMkPCwyvb3LvOlq9_n6isTe2UmwkAtuOIL8OWWg/exec";
 
 function obtenerUbicacion() {
 
