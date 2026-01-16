@@ -92,3 +92,18 @@ function enviarMarcacion() {
         console.error(error);
     });
 }
+
+// 🔒 Función para manejar Google Sign-In y validar dominios autorizados
+function handleCredentialResponse(response) {
+    const data = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = data.email;
+
+    // Validar dominios permitidos
+    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
+        alert("Correo no autorizado");
+        return;
+    }
+
+    document.getElementById("correo").value = email;
+    alert("Sesión iniciada como: " + email);
+}

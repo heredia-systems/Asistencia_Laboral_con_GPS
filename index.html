@@ -64,6 +64,10 @@
             border: none;
             border-radius: 5px;
             font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e0a800;
         }
         #map {
             height: 300px;
@@ -144,22 +148,11 @@
     </form>
 </div>
 
+<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="script.js"></script>
 
-<script>
-function handleCredentialResponse(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = data.email;
-    // Validar dominios permitidos
-    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@mineduc.gob.ec")) {
-        alert("Correo no autorizado");
-        return;
-    }
-    document.getElementById("correo").value = email;
-    alert("Sesión iniciada como: " + email);
-}
-</script>
+<!-- Script JS -->
+<script src="script.js"></script>
 
 </body>
 </html>
