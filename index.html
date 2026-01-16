@@ -50,7 +50,7 @@
             font-weight: bold;
             color: #003366;
         }
-        input, select {
+        input, select, button, video {
             width: 100%;
             padding: 9px;
         }
@@ -58,8 +58,6 @@
             background-color: #f2f2f2;
         }
         button {
-            width: 100%;
-            padding: 10px;
             background-color: #f4b400;
             border: none;
             border-radius: 5px;
@@ -92,14 +90,6 @@
         }
         #mensaje.error {
             color: red;
-        }
-
-        /* Estilos para video */
-        #videoCaptura {
-            width: 100%;
-            border-radius: 8px;
-            margin-top: 10px;
-            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -163,11 +153,16 @@
 
         <div id="map"></div>
 
+        <!-- Captura de imagen -->
+        <div class="fila">
+            <label>Captura de imagen</label>
+            <video id="video" width="100%" height="200" autoplay></video>
+            <button type="button" onclick="tomarFoto()">Capturar imagen</button>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+
         <!-- DIV PARA MENSAJES -->
         <div id="mensaje"></div>
-
-        <!-- VIDEO PARA CAPTURA DE IMAGEN -->
-        <video id="videoCaptura" autoplay></video>
 
         <div class="fila">
             <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
@@ -216,21 +211,6 @@ function mostrarMensaje(texto, exito) {
 
     div.className = exito ? "exito" : "error";
 }
-
-// Iniciar cámara al cargar
-window.addEventListener("load", function() {
-    const video = document.getElementById("videoCaptura");
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            video.srcObject = stream;
-        })
-        .catch(err => {
-            mostrarMensaje("No se pudo acceder a la cámara", false);
-            console.error(err);
-        });
-    }
-});
 </script>
 
 </body>

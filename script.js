@@ -1,24 +1,9 @@
 let map;
 let marker;
 let ubicacionConfirmada = false;
-let imagenBase64 = ""; // Guardará la imagen capturada
+let imagenBase64 = ""; // Variable global para la imagen
 
-// 🔗 URL del Web App de Google Apps Script
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxEzQwmZZV3Qrd5Cu7-IuNMcIuDLtgHVQNtg5Xp1hrVfpngoJsfZLhmMySq5smxJhw/exec";
-
-// Función para mostrar mensajes en el div con X roja o ✔ verde
-function mostrarMensaje(texto, exito) {
-    const div = document.getElementById("mensaje");
-    div.style.display = "block";
-    div.textContent = ""; // limpiar
-
-    const span = document.createElement("span");
-    span.textContent = exito ? "✔" : "✖";
-    div.appendChild(span);
-    div.appendChild(document.createTextNode(texto));
-
-    div.className = exito ? "exito" : "error";
-}
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbweeOpMdKvHcMewRhzOU1S_samFZlG7umyzb_4FkqpsdAORFQjGXQmmtVtIsgUDWgRA/exec";
 
 function obtenerUbicacion() {
     if (!navigator.geolocation) {
@@ -57,41 +42,34 @@ function obtenerUbicacion() {
     );
 }
 
-// NUEVA FUNCIÓN: Capturar imagen desde la cámara
-function capturarImagen() {
-    const video = document.createElement("video");
-    const canvas = document.createElement("canvas");
+// Función para capturar la imagen
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    const video = document.getElementById("video");
+    video.srcObject = stream;
+})
+.catch(err => {
+    mostrarMensaje("No se puede acceder a la cámara: " + err, false);
+});
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            video.srcObject = stream;
-            video.play();
-
-            // Esperar que el video cargue y capturar un frame
-            setTimeout(() => {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-                imagenBase64 = canvas.toDataURL("image/png"); // Guardar como base64
-
-                mostrarMensaje("Imagen capturada correctamente", true);
-
-                // Detener la cámara
-                stream.getTracks().forEach(track => track.stop());
-            }, 1000); // Espera 1 segundo para que la cámara se inicialice
-        })
-        .catch(err => {
-            mostrarMensaje("No se pudo acceder a la cámara", false);
-            console.error(err);
-        });
+function tomarFoto() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0);
+    imagenBase64 = canvas.toDataURL("image/png");
+    mostrarMensaje("Imagen capturada correctamente", true);
 }
 
 function enviarMarcacion() {
-
     if (!ubicacionConfirmada) {
         mostrarMensaje("Debe obtener la ubicación GPS antes de registrar.", false);
+        return;
+    }
+
+    if (!imagenBase64) {
+        mostrarMensaje("Debe capturar la imagen antes de registrar.", false);
         return;
     }
 
@@ -107,11 +85,6 @@ function enviarMarcacion() {
         return;
     }
 
-    if (!imagenBase64) {
-        mostrarMensaje("Debe capturar la imagen antes de registrar.", false);
-        return;
-    }
-
     const formData = new FormData();
     formData.append("responsable", responsable);
     formData.append("institucion", institucion);
@@ -119,7 +92,7 @@ function enviarMarcacion() {
     formData.append("latitud", lat);
     formData.append("longitud", lon);
     formData.append("correo", correo);
-    formData.append("imagen", imagenBase64); // Enviar la imagen al script
+    formData.append("imagen", imagenBase64);
 
     fetch(URL_WEB_APP, {
         method: "POST",
@@ -127,10 +100,8 @@ function enviarMarcacion() {
     })
     .then(res => res.text())
     .then(respuesta => {
-
         if (respuesta === "OK") {
             mostrarMensaje("Marcación registrada correctamente", true);
-            imagenBase64 = ""; // limpiar la imagen después de enviar
         } else if (respuesta === "DUPLICADO") {
             mostrarMensaje("Ya existe una marcación de este tipo hoy", false);
         } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {
@@ -140,7 +111,6 @@ function enviarMarcacion() {
         } else {
             mostrarMensaje("Error: " + respuesta, false);
         }
-
     })
     .catch(error => {
         mostrarMensaje("Error de conexión con el servidor", false);
@@ -148,7 +118,7 @@ function enviarMarcacion() {
     });
 }
 
-// 🔒 Función para manejar Google Sign-In y validar dominios autorizados
+// Google Sign-In
 function handleCredentialResponse(response) {
     const data = JSON.parse(atob(response.credential.split('.')[1]));
     const email = data.email.toLowerCase();
