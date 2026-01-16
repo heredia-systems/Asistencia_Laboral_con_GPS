@@ -2,8 +2,8 @@ let map;
 let marker;
 let ubicacionConfirmada = false;
 
-// 🔗 PEGA AQUÍ LA URL DE TU WEB APP
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbwBgqPAvcf-BLDpn2mfQhkTVy3sBftRFXjtEAZxGDUO2S7B6SQ_TdFgnpdtCHyuRYUm/exec";
+// 🔗 URL del Web App de Google Apps Script
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxT1_mlZP-06mosfdkQ1EITrY6kSzqWJ0b5gcIwNTQPehCm0d0vaLGI1DnG3H5ASp3f/exec";
 
 function obtenerUbicacion() {
 
@@ -14,7 +14,6 @@ function obtenerUbicacion() {
 
     navigator.geolocation.getCurrentPosition(
         function (pos) {
-
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
 
@@ -28,7 +27,9 @@ function obtenerUbicacion() {
                 }).addTo(map);
             }
 
-            if (marker) map.removeLayer(marker);
+            if (marker) {
+                map.removeLayer(marker);
+            }
 
             marker = L.marker([lat, lon]).addTo(map);
             map.setView([lat, lon], 17);
@@ -48,25 +49,25 @@ function enviarMarcacion() {
         return;
     }
 
-    const correo = document.getElementById("correo").value;
     const responsable = document.getElementById("responsable").value;
     const institucion = document.getElementById("institucion").value;
     const tipo = document.getElementById("tipo_marcacion").value;
     const lat = document.getElementById("latitud").value;
     const lon = document.getElementById("longitud").value;
+    const correo = document.getElementById("correo").value;
 
-    if (!correo || !responsable || !institucion || !tipo) {
+    if (!responsable || !institucion || !tipo || !correo) {
         alert("Complete todos los campos obligatorios.");
         return;
     }
 
     const formData = new FormData();
-    formData.append("correo", correo);
     formData.append("responsable", responsable);
     formData.append("institucion", institucion);
     formData.append("tipo_marcacion", tipo);
     formData.append("latitud", lat);
     formData.append("longitud", lon);
+    formData.append("correo", correo);
 
     fetch(URL_WEB_APP, {
         method: "POST",
@@ -76,18 +77,18 @@ function enviarMarcacion() {
     .then(respuesta => {
 
         if (respuesta === "OK") {
-            alert("✅ Marcación registrada correctamente.");
+            alert("Marcación registrada correctamente.");
         } else if (respuesta === "DUPLICADO") {
-            alert("⚠️ Ya existe una marcación de este tipo hoy.");
+            alert("Ya existe una marcación de este tipo hoy.");
         } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {
-            alert("❌ Correo institucional no autorizado.");
+            alert("Correo no autorizado.");
         } else {
-            alert("❌ Error: " + respuesta);
+            alert("Error: " + respuesta);
         }
 
     })
     .catch(error => {
-        alert("❌ Error de conexión con el servidor.");
+        alert("Error de conexión con el servidor.");
         console.error(error);
     });
 }

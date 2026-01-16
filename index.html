@@ -5,20 +5,10 @@
     <title>Formulario GPS – Ministerio de Educación</title>
 
     <!-- Leaflet -->
-    <link rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-    <!-- Google Identity Services -->
+    <!-- Google Identity -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <!-- FUNCIÓN GOOGLE LOGIN (DEBE IR AQUÍ ARRIBA) -->
-    <script>
-    function handleCredentialResponse(response) {
-        const data = JSON.parse(atob(response.credential.split('.')[1]));
-        document.getElementById("correo").value = data.email;
-        alert("Sesión iniciada como: " + data.email);
-    }
-    </script>
 
     <style>
         body {
@@ -30,26 +20,22 @@
             background-position: center;
             background-attachment: fixed;
         }
-
         .overlay {
             min-height: 100vh;
             background-color: rgba(0, 51, 102, 0.55);
             padding-bottom: 40px;
         }
-
         .banner {
             width: 100%;
             background-color: #ffffff;
             text-align: center;
             padding: 10px 0;
         }
-
         h1 {
             text-align: center;
             color: #ffffff;
             margin: 25px 15px;
         }
-
         form {
             background: rgba(255, 255, 255, 0.96);
             padding: 25px;
@@ -57,28 +43,20 @@
             margin: auto;
             border-radius: 10px;
         }
-
         .fila {
             margin-bottom: 15px;
         }
-
         label {
-            display: block;
             font-weight: bold;
             color: #003366;
-            margin-bottom: 5px;
         }
-
         input, select {
             width: 100%;
             padding: 9px;
-            box-sizing: border-box;
         }
-
         input[readonly] {
             background-color: #f2f2f2;
         }
-
         button {
             width: 100%;
             padding: 10px;
@@ -86,22 +64,21 @@
             border: none;
             border-radius: 5px;
             font-weight: bold;
-            cursor: pointer;
         }
-
         #map {
             height: 300px;
             margin-top: 15px;
+            border-radius: 8px;
+            border: 2px solid #003366;
         }
     </style>
 </head>
 
 <body>
-
 <div class="overlay">
 
     <div class="banner">
-        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png">
+        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png" alt="Ministerio de Educación">
     </div>
 
     <h1>Registro de Marcación Institucional con GPS</h1>
@@ -113,14 +90,7 @@
              data-callback="handleCredentialResponse"
              data-auto_prompt="false">
         </div>
-
-        <div class="g_id_signin"
-             data-type="standard"
-             data-size="large"
-             data-theme="outline"
-             data-text="signin_with"
-             data-shape="rectangular">
-        </div>
+        <div class="g_id_signin"></div>
     </div>
 
     <form id="gpsForm">
@@ -151,29 +121,45 @@
             </select>
         </div>
 
-        <input type="hidden" id="latitud">
-        <input type="hidden" id="longitud">
+        <div class="fila">
+            <label>Latitud</label>
+            <input type="text" id="latitud" readonly>
+        </div>
+
+        <div class="fila">
+            <label>Longitud</label>
+            <input type="text" id="longitud" readonly>
+        </div>
 
         <div id="map"></div>
 
         <div class="fila">
-            <button type="button" onclick="obtenerUbicacion()">
-                Obtener ubicación
-            </button>
+            <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
         </div>
 
         <div class="fila">
-            <button type="button" onclick="enviarMarcacion()">
-                Registrar marcación
-            </button>
+            <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
         </div>
 
     </form>
 </div>
 
-<!-- LIBRERÍAS Y TU JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="script.js"></script>
+
+<script>
+function handleCredentialResponse(response) {
+    const data = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = data.email;
+    // Validar dominios permitidos
+    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@mineduc.gob.ec")) {
+        alert("Correo no autorizado");
+        return;
+    }
+    document.getElementById("correo").value = email;
+    alert("Sesión iniciada como: " + email);
+}
+</script>
 
 </body>
 </html>
