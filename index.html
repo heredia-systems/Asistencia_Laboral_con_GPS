@@ -93,6 +93,14 @@
         #mensaje.error {
             color: red;
         }
+
+        /* Estilos para video */
+        #videoCaptura {
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 
@@ -158,6 +166,9 @@
         <!-- DIV PARA MENSAJES -->
         <div id="mensaje"></div>
 
+        <!-- VIDEO PARA CAPTURA DE IMAGEN -->
+        <video id="videoCaptura" autoplay></video>
+
         <div class="fila">
             <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
         </div>
@@ -196,7 +207,7 @@ function handleCredentialResponse(response) {
 function mostrarMensaje(texto, exito) {
     const div = document.getElementById("mensaje");
     div.style.display = "block";
-    div.textContent = ""; // limpiar
+    div.textContent = "";
 
     const span = document.createElement("span");
     span.textContent = exito ? "✔" : "✖";
@@ -205,6 +216,21 @@ function mostrarMensaje(texto, exito) {
 
     div.className = exito ? "exito" : "error";
 }
+
+// Iniciar cámara al cargar
+window.addEventListener("load", function() {
+    const video = document.getElementById("videoCaptura");
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            mostrarMensaje("No se pudo acceder a la cámara", false);
+            console.error(err);
+        });
+    }
+});
 </script>
 
 </body>
