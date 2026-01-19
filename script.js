@@ -58,8 +58,8 @@ function tomarFoto() {
     const canvas = document.getElementById("canvas");
 
     // Tamaño máximo razonable (para que la imagen no sea enorme, pero conserve calidad)
-    const MAX_WIDTH = 50;
-    const MAX_HEIGHT = 50;
+    const MAX_WIDTH = 200;
+    const MAX_HEIGHT = 200;
 
     let width = video.videoWidth;
     let height = video.videoHeight;
