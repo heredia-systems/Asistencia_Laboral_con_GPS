@@ -73,7 +73,6 @@
             border-radius: 8px;
             border: 2px solid #003366;
         }
-
         #mensaje {
             margin: 10px 0;
             font-size: 18px;
@@ -82,13 +81,14 @@
         #mensaje span {
             font-size: 24px;
             margin-right: 8px;
-            vertical-align: middle;
         }
-        #mensaje.exito {
-            color: green;
-        }
-        #mensaje.error {
-            color: red;
+        #mensaje.exito { color: green; }
+        #mensaje.error { color: red; }
+
+        #estadoGPS {
+            font-weight: bold;
+            color: #003366;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -97,21 +97,10 @@
 <div class="overlay">
 
     <div class="banner">
-        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png"
-             alt="Ministerio de Educación">
+        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png">
     </div>
 
     <h1>Registro de Marcación Institucional con GPS</h1>
-
-    <!-- 🔐 LOGIN GOOGLE -->
-    <div style="text-align:center; margin-bottom:15px;">
-        <div id="g_id_onload"
-             data-client_id="942537115951-3iom1kgrq385tvcofnovdv769sgafsb5.apps.googleusercontent.com"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
-        </div>
-        <div class="g_id_signin"></div>
-    </div>
 
     <form id="gpsForm">
 
@@ -141,34 +130,32 @@
             </select>
         </div>
 
-        <!-- GPS OCULTO (SE SIGUE GUARDANDO) -->
-        <input type="hidden" id="latitud">
-        <input type="hidden" id="longitud">
+        <div class="fila">
+            <label>Latitud</label>
+            <input type="text" id="latitud" readonly>
+        </div>
+
+        <div class="fila">
+            <label>Longitud</label>
+            <input type="text" id="longitud" readonly>
+        </div>
+
+        <div class="fila">
+            <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
+            <div id="estadoGPS"></div>
+        </div>
 
         <div id="map"></div>
 
-        <!-- Captura de imagen -->
         <div class="fila">
             <label>Captura de imagen</label>
-            <video id="video" width="100%" height="200" autoplay></video>
+            <video id="video" autoplay playsinline muted></video>
             <button type="button" onclick="tomarFoto()">Capturar imagen</button>
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- MENSAJES GENERALES -->
         <div id="mensaje"></div>
 
-        <!-- BOTÓN GPS -->
-        <div class="fila">
-            <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
-        </div>
-
-        <!-- ESTADO GPS -->
-        <div class="fila">
-            <p id="estadoGPS" style="font-weight:bold; color:#003366;"></p>
-        </div>
-
-        <!-- REGISTRO -->
         <div class="fila">
             <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
         </div>
@@ -176,41 +163,8 @@
     </form>
 </div>
 
-<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Script JS -->
 <script src="script.js"></script>
-
-<!-- GOOGLE SIGN-IN -->
-<script>
-function handleCredentialResponse(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = data.email.toLowerCase();
-
-    if (!email.endsWith("@docentes.educacion.edu.ec") &&
-        !email.endsWith("@minedec.gob.ec")) {
-        mostrarMensaje("Correo no autorizado", false);
-        return;
-    }
-
-    document.getElementById("correo").value = email;
-    mostrarMensaje("Sesión iniciada como: " + email, true);
-}
-
-function mostrarMensaje(texto, exito) {
-    const div = document.getElementById("mensaje");
-    div.style.display = "block";
-    div.textContent = "";
-
-    const span = document.createElement("span");
-    span.textContent = exito ? "✔" : "✖";
-    div.appendChild(span);
-    div.appendChild(document.createTextNode(texto));
-
-    div.className = exito ? "exito" : "error";
-}
-</script>
 
 </body>
 </html>
