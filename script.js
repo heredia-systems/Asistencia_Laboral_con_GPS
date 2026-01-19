@@ -3,7 +3,7 @@ let marker;
 let ubicacionConfirmada = false;
 let imagenBase64 = ""; // Variable global para la imagen
 
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzRPNiKYsEoqAgAIiV-rx4Sq3mrN88VBRHV7u8s5EIH81RqE3eoFxDXs3Rlv13TE4Kx/exec";
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzVbc7o8oixOV3PBciCFlCrYmqDDi-zceWGGsVpk7T1sBtYKkfUWANtLUDaF45KLr6p/exec";
 
 function obtenerUbicacion() {
     if (!navigator.geolocation) {
