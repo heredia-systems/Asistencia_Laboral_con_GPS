@@ -1,48 +1,93 @@
 let map;
 let marker;
+let watchId = null;
+
 let ubicacionConfirmada = false;
-let imagenBase64 = ""; // Variable global para la imagen
+let mejorAccuracy = Infinity;
+let imagenBase64 = "";
 
 const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzVbc7o8oixOV3PBciCFlCrYmqDDi-zceWGGsVpk7T1sBtYKkfUWANtLUDaF45KLr6p/exec";
 
+// ==========================
+// 📍 OBTENER UBICACIÓN GPS (MEJORADO)
+// ==========================
 function obtenerUbicacion() {
+
     if (!navigator.geolocation) {
         mostrarMensaje("Tu navegador no soporta geolocalización", false);
         return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-        function (pos) {
+    // Reiniciar estado
+    ubicacionConfirmada = false;
+    mejorAccuracy = Infinity;
+
+    document.getElementById("estadoGPS").innerText = "Buscando ubicación…";
+
+    // Detener escucha anterior si existe
+    if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+    }
+
+    watchId = navigator.geolocation.watchPosition(
+        (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy; // metros
 
-            document.getElementById("latitud").value = lat;
-            document.getElementById("longitud").value = lon;
+            // Guardar solo la mejor lectura
+            if (acc < mejorAccuracy) {
+                mejorAccuracy = acc;
 
-            if (!map) {
-                map = L.map("map").setView([lat, lon], 17);
-                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                    attribution: "© OpenStreetMap"
-                }).addTo(map);
+                document.getElementById("latitud").value = lat;
+                document.getElementById("longitud").value = lon;
+
+                if (!map) {
+                    map = L.map("map").setView([lat, lon], 17);
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: "© OpenStreetMap"
+                    }).addTo(map);
+                }
+
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+
+                marker = L.marker([lat, lon]).addTo(map);
+                map.setView([lat, lon], 17);
+
+                document.getElementById("estadoGPS").innerText =
+                    Precisión actual: ±${Math.round(acc)} m;
             }
 
-            if (marker) {
-                map.removeLayer(marker);
+            // Precisión aceptable (ajustable)
+            if (acc <= 20) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+
+                ubicacionConfirmada = true;
+                document.getElementById("estadoGPS").innerText =
+                    "Ubicación precisa obtenida ✅";
+
+                mostrarMensaje("Ubicación GPS confirmada", true);
             }
-
-            marker = L.marker([lat, lon]).addTo(map);
-            map.setView([lat, lon], 17);
-
-            ubicacionConfirmada = true;
-            mostrarMensaje("Ubicación obtenida correctamente", true);
         },
-        function () {
-            mostrarMensaje("No se pudo obtener la ubicación GPS", false);
+        (error) => {
+            mostrarMensaje("No se pudo obtener la ubicación GPS. Active el GPS.", false);
+            document.getElementById("estadoGPS").innerText = "";
+        },
+        {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 30000
         }
     );
 }
 
-// Captura de video
+// ==========================
+// 📸 CÁMARA
+// ==========================
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
     const video = document.getElementById("video");
@@ -52,19 +97,19 @@ navigator.mediaDevices.getUserMedia({ video: true })
     mostrarMensaje("No se puede acceder a la cámara: " + err, false);
 });
 
-// Función para capturar la foto como miniatura de buena calidad
+// ==========================
+// 📷 CAPTURA DE FOTO (REDUCIDA)
+// ==========================
 function tomarFoto() {
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
 
-    // Tamaño máximo razonable (para que la imagen no sea enorme, pero conserve calidad)
     const MAX_WIDTH = 200;
     const MAX_HEIGHT = 200;
 
     let width = video.videoWidth;
     let height = video.videoHeight;
 
-    // Mantener proporción
     if (width > height) {
         if (width > MAX_WIDTH) {
             height = Math.round(height * MAX_WIDTH / width);
@@ -79,18 +124,22 @@ function tomarFoto() {
 
     canvas.width = width;
     canvas.height = height;
+
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, width, height);
 
-    // Convertir a JPEG con buena calidad
-    imagenBase64 = canvas.toDataURL("image/jpeg", 0.8);
+    imagenBase64 = canvas.toDataURL("image/jpeg", 0.7);
 
     mostrarMensaje("Imagen capturada correctamente", true);
 }
 
+// ==========================
+// 📤 ENVIAR MARCACIÓN
+// ==========================
 function enviarMarcacion() {
-    if (!ubicacionConfirmada) {
-        mostrarMensaje("Debe obtener la ubicación GPS antes de registrar.", false);
+
+    if (!ubicacionConfirmada || mejorAccuracy > 50) {
+        mostrarMensaje("La ubicación no es suficientemente precisa. Intente nuevamente.", false);
         return;
     }
 
@@ -128,12 +177,6 @@ function enviarMarcacion() {
     .then(respuesta => {
         if (respuesta === "OK") {
             mostrarMensaje("Marcación registrada correctamente", true);
-        } else if (respuesta === "DUPLICADO") {
-            mostrarMensaje("Ya existe una marcación de este tipo hoy", false);
-        } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {
-            mostrarMensaje("Correo no autorizado", false);
-        } else if (respuesta === "DATOS_INCOMPLETOS") {
-            mostrarMensaje("Faltan datos obligatorios", false);
         } else {
             mostrarMensaje("Error: " + respuesta, false);
         }
@@ -144,21 +187,9 @@ function enviarMarcacion() {
     });
 }
 
-// Google Sign-In
-function handleCredentialResponse(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = data.email.toLowerCase();
-
-    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
-        mostrarMensaje("Correo no autorizado", false);
-        return;
-    }
-
-    document.getElementById("correo").value = email;
-    mostrarMensaje("Sesión iniciada como: " + email, true);
-}
-
-// Mostrar mensajes
+// ==========================
+// 🧾 MENSAJES
+// ==========================
 function mostrarMensaje(texto, exito) {
     const div = document.getElementById("mensaje");
     div.style.display = "block";

@@ -74,7 +74,6 @@
             border: 2px solid #003366;
         }
 
-        /* Estilos para mensajes */
         #mensaje {
             margin: 10px 0;
             font-size: 18px;
@@ -98,7 +97,8 @@
 <div class="overlay">
 
     <div class="banner">
-        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png" alt="Ministerio de Educación">
+        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png"
+             alt="Ministerio de Educación">
     </div>
 
     <h1>Registro de Marcación Institucional con GPS</h1>
@@ -141,15 +141,9 @@
             </select>
         </div>
 
-        <div class="fila">
-            <label>Latitud</label>
-            <input type="text" id="latitud" readonly>
-        </div>
-
-        <div class="fila">
-            <label>Longitud</label>
-            <input type="text" id="longitud" readonly>
-        </div>
+        <!-- GPS OCULTO (SE SIGUE GUARDANDO) -->
+        <input type="hidden" id="latitud">
+        <input type="hidden" id="longitud">
 
         <div id="map"></div>
 
@@ -161,13 +155,20 @@
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- DIV PARA MENSAJES -->
+        <!-- MENSAJES GENERALES -->
         <div id="mensaje"></div>
 
+        <!-- BOTÓN GPS -->
         <div class="fila">
             <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
         </div>
 
+        <!-- ESTADO GPS -->
+        <div class="fila">
+            <p id="estadoGPS" style="font-weight:bold; color:#003366;"></p>
+        </div>
+
+        <!-- REGISTRO -->
         <div class="fila">
             <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
         </div>
@@ -181,24 +182,22 @@
 <!-- Script JS -->
 <script src="script.js"></script>
 
-<!-- GOOGLE SIGN-IN Y VALIDACIÓN DE DOMINIOS -->
+<!-- GOOGLE SIGN-IN -->
 <script>
 function handleCredentialResponse(response) {
     const data = JSON.parse(atob(response.credential.split('.')[1]));
     const email = data.email.toLowerCase();
 
-    // Solo se permiten estos dominios
-    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
+    if (!email.endsWith("@docentes.educacion.edu.ec") &&
+        !email.endsWith("@minedec.gob.ec")) {
         mostrarMensaje("Correo no autorizado", false);
         return;
     }
 
-    // Asignar correo al formulario
     document.getElementById("correo").value = email;
     mostrarMensaje("Sesión iniciada como: " + email, true);
 }
 
-// Función para mostrar mensajes con X roja o ✔ verde
 function mostrarMensaje(texto, exito) {
     const div = document.getElementById("mensaje");
     div.style.display = "block";
