@@ -1,147 +1,178 @@
 let map;
 let marker;
-let watchId = null;
-
 let ubicacionConfirmada = false;
-let mejorAccuracy = Infinity;
-let imagenBase64 = "";
+let imagenBase64 = ""; // Variable global para la imagen
 
 const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzVbc7o8oixOV3PBciCFlCrYmqDDi-zceWGGsVpk7T1sBtYKkfUWANtLUDaF45KLr6p/exec";
 
-// ==========================
-// 📍 GPS MEJORADO
-// ==========================
 function obtenerUbicacion() {
-
-    if (!navigator.geolocation) {
-        mostrarMensaje("Tu navegador no soporta geolocalización", false);
-        return;
-    }
-
-    ubicacionConfirmada = false;
-    mejorAccuracy = Infinity;
-    document.getElementById("estadoGPS").innerText = "Buscando ubicación…";
-
-    if (watchId !== null) {
-        navigator.geolocation.clearWatch(watchId);
-    }
-
-    watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            const acc = pos.coords.accuracy;
-
-            if (acc < mejorAccuracy) {
-                mejorAccuracy = acc;
-
-                document.getElementById("latitud").value = lat;
-                document.getElementById("longitud").value = lon;
-
-                if (!map) {
-                    map = L.map("map").setView([lat, lon], 17);
-                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
-                }
-
-                if (marker) map.removeLayer(marker);
-
-                marker = L.marker([lat, lon]).addTo(map);
-                map.setView([lat, lon], 17);
-
-                document.getElementById("estadoGPS").innerText =
-                    Precisión actual: ±${Math.round(acc)} m;
-            }
-
-            if (acc <= 20) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-                ubicacionConfirmada = true;
-                document.getElementById("estadoGPS").innerText = "Ubicación precisa obtenida ✅";
-                mostrarMensaje("Ubicación GPS confirmada", true);
-            }
-        },
-        () => {
-            mostrarMensaje("No se pudo obtener la ubicación GPS", false);
-            document.getElementById("estadoGPS").innerText = "";
-        },
-        { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
-    );
+if (!navigator.geolocation) {
+mostrarMensaje("Tu navegador no soporta geolocalización", false);
+return;
 }
 
-// ==========================
-// 📸 CÁMARA
-// ==========================
+navigator.geolocation.getCurrentPosition(  
+    function (pos) {  
+        const lat = pos.coords.latitude;  
+        const lon = pos.coords.longitude;  
+
+        document.getElementById("latitud").value = lat;  
+        document.getElementById("longitud").value = lon;  
+
+        if (!map) {  
+            map = L.map("map").setView([lat, lon], 17);  
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {  
+                attribution: "© OpenStreetMap"  
+            }).addTo(map);  
+        }  
+
+        if (marker) {  
+            map.removeLayer(marker);  
+        }  
+
+        marker = L.marker([lat, lon]).addTo(map);  
+        map.setView([lat, lon], 17);  
+
+        ubicacionConfirmada = true;  
+        mostrarMensaje("Ubicación obtenida correctamente", true);  
+    },  
+    function () {  
+        mostrarMensaje("No se pudo obtener la ubicación GPS", false);  
+    }  
+);
+
+}
+
+// Captura de video
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
-    const video = document.getElementById("video");
-    video.srcObject = stream;
-    video.onloadedmetadata = () => video.play();
+const video = document.getElementById("video");
+video.srcObject = stream;
 })
 .catch(err => {
-    mostrarMensaje("No se puede acceder a la cámara: " + err, false);
+mostrarMensaje("No se puede acceder a la cámara: " + err, false);
 });
 
-// ==========================
-// 📷 FOTO REDUCIDA
-// ==========================
+// Función para capturar la foto como miniatura de buena calidad
 function tomarFoto() {
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
 
-    const MAX = 200;
-    let w = video.videoWidth;
-    let h = video.videoHeight;
+// Tamaño máximo razonable (para que la imagen no sea enorme, pero conserve calidad)  
+const MAX_WIDTH = 200;  
+const MAX_HEIGHT = 200;  
 
-    if (w > h && w > MAX) {
-        h = h * MAX / w; w = MAX;
-    } else if (h > MAX) {
-        w = w * MAX / h; h = MAX;
-    }
+let width = video.videoWidth;  
+let height = video.videoHeight;  
 
-    canvas.width = w;
-    canvas.height = h;
-    canvas.getContext("2d").drawImage(video, 0, 0, w, h);
+// Mantener proporción  
+if (width > height) {  
+    if (width > MAX_WIDTH) {  
+        height = Math.round(height * MAX_WIDTH / width);  
+        width = MAX_WIDTH;  
+    }  
+} else {  
+    if (height > MAX_HEIGHT) {  
+        width = Math.round(width * MAX_HEIGHT / height);  
+        height = MAX_HEIGHT;  
+    }  
+}  
 
-    imagenBase64 = canvas.toDataURL("image/jpeg", 0.7);
-    mostrarMensaje("Imagen capturada correctamente", true);
+canvas.width = width;  
+canvas.height = height;  
+const ctx = canvas.getContext("2d");  
+ctx.drawImage(video, 0, 0, width, height);  
+
+// Convertir a JPEG con buena calidad  
+imagenBase64 = canvas.toDataURL("image/jpeg", 0.8);  
+
+mostrarMensaje("Imagen capturada correctamente", true);
+
 }
 
-// ==========================
-// 📤 ENVÍO
-// ==========================
 function enviarMarcacion() {
-
-    if (!ubicacionConfirmada) {
-        mostrarMensaje("Ubicación no confirmada", false);
-        return;
-    }
-
-    if (!imagenBase64) {
-        mostrarMensaje("Debe capturar la imagen", false);
-        return;
-    }
-
-    const data = new FormData();
-    data.append("responsable", responsable.value);
-    data.append("institucion", institucion.value);
-    data.append("tipo_marcacion", tipo_marcacion.value);
-    data.append("latitud", latitud.value);
-    data.append("longitud", longitud.value);
-    data.append("correo", correo.value);
-    data.append("imagen", imagenBase64);
-
-    fetch(URL_WEB_APP, { method: "POST", body: data })
-    .then(r => r.text())
-    .then(res => mostrarMensaje(res === "OK" ? "Marcación registrada" : res, res === "OK"))
-    .catch(() => mostrarMensaje("Error de conexión", false));
+if (!ubicacionConfirmada) {
+mostrarMensaje("Debe obtener la ubicación GPS antes de registrar.", false);
+return;
 }
 
-// ==========================
-// 🧾 MENSAJES
-// ==========================
+if (!imagenBase64) {  
+    mostrarMensaje("Debe capturar la imagen antes de registrar.", false);  
+    return;  
+}  
+
+const responsable = document.getElementById("responsable").value;  
+const institucion = document.getElementById("institucion").value;  
+const tipo = document.getElementById("tipo_marcacion").value;  
+const lat = document.getElementById("latitud").value;  
+const lon = document.getElementById("longitud").value;  
+const correo = document.getElementById("correo").value;  
+
+if (!responsable || !institucion || !tipo || !correo) {  
+    mostrarMensaje("Complete todos los campos obligatorios.", false);  
+    return;  
+}  
+
+const formData = new FormData();  
+formData.append("responsable", responsable);  
+formData.append("institucion", institucion);  
+formData.append("tipo_marcacion", tipo);  
+formData.append("latitud", lat);  
+formData.append("longitud", lon);  
+formData.append("correo", correo);  
+formData.append("imagen", imagenBase64);  
+
+fetch(URL_WEB_APP, {  
+    method: "POST",  
+    body: formData  
+})  
+.then(res => res.text())  
+.then(respuesta => {  
+    if (respuesta === "OK") {  
+        mostrarMensaje("Marcación registrada correctamente", true);  
+    } else if (respuesta === "DUPLICADO") {  
+        mostrarMensaje("Ya existe una marcación de este tipo hoy", false);  
+    } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {  
+        mostrarMensaje("Correo no autorizado", false);  
+    } else if (respuesta === "DATOS_INCOMPLETOS") {  
+        mostrarMensaje("Faltan datos obligatorios", false);  
+    } else {  
+        mostrarMensaje("Error: " + respuesta, false);  
+    }  
+})  
+.catch(error => {  
+    mostrarMensaje("Error de conexión con el servidor", false);  
+    console.error(error);  
+});
+
+}
+
+// Google Sign-In
+function handleCredentialResponse(response) {
+const data = JSON.parse(atob(response.credential.split('.')[1]));
+const email = data.email.toLowerCase();
+
+if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {  
+    mostrarMensaje("Correo no autorizado", false);  
+    return;  
+}  
+
+document.getElementById("correo").value = email;  
+mostrarMensaje("Sesión iniciada como: " + email, true);
+
+}
+
+// Mostrar mensajes
 function mostrarMensaje(texto, exito) {
-    const d = document.getElementById("mensaje");
-    d.style.display = "block";
-    d.className = exito ? "exito" : "error";
-    d.innerHTML = <span>${exito ? "✔" : "✖"}</span>${texto};
+const div = document.getElementById("mensaje");
+div.style.display = "block";
+div.textContent = "";
+
+const span = document.createElement("span");  
+span.textContent = exito ? "✔" : "✖";  
+div.appendChild(span);  
+div.appendChild(document.createTextNode(texto));  
+
+div.className = exito ? "exito" : "error";
+
 }
