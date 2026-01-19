@@ -1,169 +1,65 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Formulario GPS – Ministerio de Educación</title>
+<meta charset="UTF-8">
+<title>Marcación con GPS</title>
 
-    <!-- Leaflet -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
-    <!-- Google Identity -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
-    <style>
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, sans-serif;
-            background-image: url("https://i.imgur.com/IiSa0F2.jpeg");
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-        }
-        .overlay {
-            min-height: 100vh;
-            background-color: rgba(0, 51, 102, 0.55);
-            padding-bottom: 40px;
-        }
-        .banner {
-            width: 100%;
-            background-color: #ffffff;
-            text-align: center;
-            padding: 10px 0;
-        }
-        h1 {
-            text-align: center;
-            color: #ffffff;
-            margin: 25px 15px;
-        }
-        form {
-            background: rgba(255, 255, 255, 0.96);
-            padding: 25px;
-            max-width: 620px;
-            margin: auto;
-            border-radius: 10px;
-        }
-        .fila {
-            margin-bottom: 15px;
-        }
-        label {
-            font-weight: bold;
-            color: #003366;
-        }
-        input, select, button, video {
-            width: 100%;
-            padding: 9px;
-        }
-        input[readonly] {
-            background-color: #f2f2f2;
-        }
-        button {
-            background-color: #f4b400;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #e0a800;
-        }
-        #map {
-            height: 300px;
-            margin-top: 15px;
-            border-radius: 8px;
-            border: 2px solid #003366;
-        }
-        #mensaje {
-            margin: 10px 0;
-            font-size: 18px;
-            display: none;
-        }
-        #mensaje span {
-            font-size: 24px;
-            margin-right: 8px;
-        }
-        #mensaje.exito { color: green; }
-        #mensaje.error { color: red; }
-
-        #estadoGPS {
-            font-weight: bold;
-            color: #003366;
-            margin-top: 5px;
-        }
-    </style>
+<style>
+  #map { height: 250px; margin-top: 10px; }
+  video { width: 100%; max-width: 320px; border: 1px solid #ccc; }
+  canvas { display: none; }
+</style>
 </head>
 
 <body>
-<div class="overlay">
 
-    <div class="banner">
-        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png">
-    </div>
+<h3>Marcación</h3>
 
-    <h1>Registro de Marcación Institucional con GPS</h1>
+<input id="correo" placeholder="Correo institucional"><br><br>
+<input id="responsable" placeholder="Responsable"><br><br>
+<input id="institucion" placeholder="Institución"><br><br>
 
-    <form id="gpsForm">
+<select id="tipo_marcacion">
+  <option value="">Seleccione tipo</option>
+  <option value="Entrada">Entrada</option>
+  <option value="Salida Almuerzo">Salida Almuerzo</option>
+  <option value="Retorno Almuerzo">Retorno Almuerzo</option>
+  <option value="Salida">Salida</option>
+</select>
 
-        <div class="fila">
-            <label>Correo institucional</label>
-            <input type="email" id="correo" readonly required>
-        </div>
+<br><br>
 
-        <div class="fila">
-            <label>Nombres y apellidos</label>
-            <input type="text" id="responsable" required>
-        </div>
+<button onclick="obtenerUbicacion()">📍 Obtener ubicación</button>
+<div id="estadoGPS"></div>
 
-        <div class="fila">
-            <label>Institución</label>
-            <input type="text" id="institucion" required>
-        </div>
+<input type="hidden" id="latitud">
+<input type="hidden" id="longitud">
 
-        <div class="fila">
-            <label>Tipo de marcación</label>
-            <select id="tipo_marcacion" required>
-                <option value="">Seleccione</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida_almuerzo">Salida almuerzo</option>
-                <option value="retorno_almuerzo">Retorno almuerzo</option>
-                <option value="salida">Salida laboral</option>
-            </select>
-        </div>
+<div id="map"></div>
 
-        <div class="fila">
-            <label>Latitud</label>
-            <input type="text" id="latitud" readonly>
-        </div>
+<hr>
 
-        <div class="fila">
-            <label>Longitud</label>
-            <input type="text" id="longitud" readonly>
-        </div>
+<h4>Captura de imagen</h4>
 
-        <div class="fila">
-            <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
-            <div id="estadoGPS"></div>
-        </div>
+<!-- 🔴 ESTO ES LO QUE SE HABÍA PERDIDO -->
+<video id="video" autoplay playsinline></video>
 
-        <div id="map"></div>
+<br><br>
 
-        <div class="fila">
-            <label>Captura de imagen</label>
-            <video id="video" autoplay playsinline muted></video>
-            <button type="button" onclick="tomarFoto()">Capturar imagen</button>
-            <canvas id="canvas" style="display:none;"></canvas>
-        </div>
+<button onclick="tomarFoto()">📸 Capturar imagen</button>
 
-        <div id="mensaje"></div>
+<canvas id="canvas"></canvas>
 
-        <div class="fila">
-            <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
-        </div>
+<hr>
 
-    </form>
-</div>
+<button onclick="enviarMarcacion()">📤 Enviar marcación</button>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div id="mensaje" style="display:none;"></div>
+
+<!-- ⚠️ LOS SCRIPTS SIEMPRE AL FINAL -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="script.js"></script>
 
 </body>
