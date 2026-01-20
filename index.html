@@ -1,4 +1,4 @@
-<!DOCTYPE html>  <html lang="es">  
+[9:21, 20/1/2026] Ing. Carlos Heredia: <!DOCTYPE html>  <html lang="es">  
 <head>  
     <meta charset="UTF-8">  
     <title>Formulario GPS – Ministerio de Educación</title>  <!-- Leaflet -->  
@@ -20,182 +20,226 @@
     .overlay {  
         min-height: 100vh;  
         background-color: rgba(0, 51, 102, 0.55);  
-        padding-bottom: 40px;  
-    }  
-    .banner {  
-        width: 100%;  
-        background-color: #ffffff;  
-        text-align: center;  
-        padding: 10px 0;  
-    }  
-    h1 {  
-        text-align: center;  
-        color: #ffffff;  
-        margin: 25px 15px;  
-    }  
-    form {  
-        background: rgba(255, 255, 255, 0.96);  
-        padding: 25px;  
-        max-width: 620px;  
-        margin: auto;  
-        border-radius: 10px;  
-    }  
-    .fila {  
-        margin-bottom: 15px;  
-    }  
-    label {  
-        font-weight: bold;  
-        color: #003366;  
-    }  
-    input, select, button, video {  
-        width: 100%;  
-        padding: 9px;  
-    }  
-    input[readonly] {  
-        background-color: #f2f2f2;  
-    }  
-    button {  
-        background-color: #f4b400;  
-        border: none;  
-        border-radius: 5px;  
-        font-weight: bold;  
-        cursor: pointer;  
-    }  
-    button:hover {  
-        background-color: #e0a800;  
-    }  
-    #map {  
-        height: 300px;  
-        margin-top: 15px;  
-        border-radius: 8px;  
-        border: 2px solid #003366;  
-    }  
+        padding-bottom…
+[9:24, 20/1/2026] Ing. Carlos Heredia: --------
+[9:24, 20/1/2026] Ing. Carlos Heredia: <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario GPS – Ministerio de Educación</title>
 
-    /* Estilos para mensajes */  
-    #mensaje {  
-        margin: 10px 0;  
-        font-size: 18px;  
-        display: none;  
-    }  
-    #mensaje span {  
-        font-size: 24px;  
-        margin-right: 8px;  
-        vertical-align: middle;  
-    }  
-    #mensaje.exito {  
-        color: green;  
-    }  
-    #mensaje.error {  
-        color: red;  
-    }  
-</style>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-</head>  <body>  
-<div class="overlay">  <div class="banner">  
-    <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png" alt="Ministerio de Educación">  
-</div>  
+    <!-- Google Identity -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-<h1>Registro de Marcación Institucional con GPS</h1>  
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background-image: url("https://i.imgur.com/IiSa0F2.jpeg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .overlay {
+            min-height: 100vh;
+            background-color: rgba(0, 51, 102, 0.55);
+            padding-bottom: 40px;
+        }
+        .banner {
+            width: 100%;
+            background-color: #ffffff;
+            text-align: center;
+            padding: 10px 0;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin: 25px 15px;
+        }
+        form {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 25px;
+            max-width: 620px;
+            margin: auto;
+            border-radius: 10px;
+        }
+        .fila {
+            margin-bottom: 15px;
+        }
+        label {
+            font-weight: bold;
+            color: #003366;
+        }
+        input, select, button, video {
+            width: 100%;
+            padding: 9px;
+        }
+        input[readonly] {
+            background-color: #f2f2f2;
+        }
+        button {
+            background-color: #f4b400;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #e0a800;
+        }
+        #map {
+            height: 300px;
+            margin-top: 15px;
+            border-radius: 8px;
+            border: 2px solid #003366;
+        }
 
-<!-- 🔐 LOGIN GOOGLE -->  
-<div style="text-align:center; margin-bottom:15px;">  
-    <div id="g_id_onload"  
-         data-client_id="942537115951-3iom1kgrq385tvcofnovdv769sgafsb5.apps.googleusercontent.com"  
-         data-callback="handleCredentialResponse"  
-         data-auto_prompt="false">  
-    </div>  
-    <div class="g_id_signin"></div>  
-</div>  
+        /* Estilos para mensajes */
+        #mensaje {
+            margin: 10px 0;
+            font-size: 18px;
+            display: none;
+        }
+        #mensaje span {
+            font-size: 24px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        #mensaje.exito {
+            color: green;
+        }
+        #mensaje.error {
+            color: red;
+        }
+    </style>
+</head>
 
-<form id="gpsForm">  
+<body>
+<div class="overlay">
 
-    <div class="fila">  
-        <label>Correo institucional</label>  
-        <input type="email" id="correo" readonly required>  
-    </div>  
+    <div class="banner">
+        <img src="https://servicios.educacion.gob.ec/titulacion25-web/faces/imagenes/Fotobannercompleto.png" alt="Ministerio de Educación">
+    </div>
 
-    <div class="fila">  
-        <label>Nombres y apellidos</label>  
-        <input type="text" id="responsable" required>  
-    </div>  
+    <h1>Registro de Marcación Institucional con GPS</h1>
 
-    <div class="fila">  
-        <label>Institución</label>  
-        <input type="text" id="institucion" required>  
-    </div>  
+    <!-- 🔐 LOGIN GOOGLE -->
+    <div style="text-align:center; margin-bottom:15px;">
+        <div id="g_id_onload"
+             data-client_id="942537115951-3iom1kgrq385tvcofnovdv769sgafsb5.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"></div>
+    </div>
 
-    <div class="fila">  
-        <label>Tipo de marcación</label>  
-        <select id="tipo_marcacion" required>  
-            <option value="">Seleccione</option>  
-            <option value="entrada">Entrada</option>  
-            <option value="salida_almuerzo">Salida almuerzo</option>  
-            <option value="retorno_almuerzo">Retorno almuerzo</option>  
-            <option value="salida">Salida laboral</option>  
-        </select>  
-    </div>  
+    <form id="gpsForm">
 
-    <div class="fila">  
-        <label>Latitud</label>  
-        <input type="text" id="latitud" readonly>  
-    </div>  
+        <div class="fila">
+            <label>Correo institucional</label>
+            <input type="email" id="correo" readonly required>
+        </div>
 
-    <div class="fila">  
-        <label>Longitud</label>  
-        <input type="text" id="longitud" readonly>  
-    </div>  
+        <div class="fila">
+            <label>Nombres y apellidos</label>
+            <input type="text" id="responsable" required>
+        </div>
 
-    <div id="map"></div>  
+        <div class="fila">
+            <label>Institución</label>
+            <input type="text" id="institucion" required>
+        </div>
 
-    <!-- Captura de imagen -->  
-    <div class="fila">  
-        <label>Captura de imagen</label>  
-        <video id="video" width="100%" height="200" autoplay></video>  
-        <button type="button" onclick="tomarFoto()">Capturar imagen</button>  
-        <canvas id="canvas" style="display:none;"></canvas>  
-    </div>  
+        <div class="fila">
+            <label>Tipo de marcación</label>
+            <select id="tipo_marcacion" required>
+                <option value="">Seleccione</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida_almuerzo">Salida almuerzo</option>
+                <option value="retorno_almuerzo">Retorno almuerzo</option>
+                <option value="salida">Salida laboral</option>
+            </select>
+        </div>
 
-    <!-- DIV PARA MENSAJES -->  
-    <div id="mensaje"></div>  
+        <!-- === AJUSTE VISUAL: OCULTAR LATITUD Y LONGITUD (NO FUNCIONAL) === -->
+        <div style="display:none;">
 
-    <div class="fila">  
-        <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>  
-    </div>  
+            <div class="fila">
+                <label>Latitud</label>
+                <input type="text" id="latitud" readonly>
+            </div>
 
-    <div class="fila">  
-        <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>  
-    </div>  
+            <div class="fila">
+                <label>Longitud</label>
+                <input type="text" id="longitud" readonly>
+            </div>
 
-</form>
+        </div>
+        <!-- === FIN AJUSTE VISUAL === -->
 
-</div>  <!-- Leaflet -->  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>  <!-- Script JS -->  <script src="script.js"></script>  <!-- GOOGLE SIGN-IN Y VALIDACIÓN DE DOMINIOS -->  <script>  
-function handleCredentialResponse(response) {  
-    const data = JSON.parse(atob(response.credential.split('.')[1]));  
-    const email = data.email.toLowerCase();  
-  
-    // Solo se permiten estos dominios  
-    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {  
-        mostrarMensaje("Correo no autorizado", false);  
-        return;  
-    }  
-  
-    // Asignar correo al formulario  
-    document.getElementById("correo").value = email;  
-    mostrarMensaje("Sesión iniciada como: " + email, true);  
-}  
-  
-// Función para mostrar mensajes con X roja o ✔ verde  
-function mostrarMensaje(texto, exito) {  
-    const div = document.getElementById("mensaje");  
-    div.style.display = "block";  
-    div.textContent = "";  
-  
-    const span = document.createElement("span");  
-    span.textContent = exito ? "✔" : "✖";  
-    div.appendChild(span);  
-    div.appendChild(document.createTextNode(texto));  
-  
-    div.className = exito ? "exito" : "error";  
-}  
-</script>  </body>  
+        <div id="map"></div>
+
+        <!-- Captura de imagen -->
+        <div class="fila">
+            <label>Captura de imagen</label>
+            <video id="video" width="100%" height="200" autoplay></video>
+            <button type="button" onclick="tomarFoto()">Capturar imagen</button>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+
+        <!-- DIV PARA MENSAJES -->
+        <div id="mensaje"></div>
+
+        <div class="fila">
+            <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
+        </div>
+
+        <div class="fila">
+            <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
+        </div>
+
+    </form>
+
+</div>
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- Script JS -->
+<script src="script.js"></script>
+
+<!-- GOOGLE SIGN-IN Y VALIDACIÓN DE DOMINIOS -->
+<script>
+function handleCredentialResponse(response) {
+    const data = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = data.email.toLowerCase();
+
+    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
+        mostrarMensaje("Correo no autorizado", false);
+        return;
+    }
+
+    document.getElementById("correo").value = email;
+    mostrarMensaje("Sesión iniciada como: " + email, true);
+}
+
+function mostrarMensaje(texto, exito) {
+    const div = document.getElementById("mensaje");
+    div.style.display = "block";
+    div.textContent = "";
+
+    const span = document.createElement("span");
+    span.textContent = exito ? "✔" : "✖";
+    div.appendChild(span);
+    div.appendChild(document.createTextNode(texto));
+
+    div.className = exito ? "exito" : "error";
+}
+</script>
+
+</body>
 </html>
