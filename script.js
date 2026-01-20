@@ -3,6 +3,10 @@ let marker;
 let ubicacionConfirmada = false;
 let imagenBase64 = ""; // Variable global para la imagen
 
+// === AGREGADO ===
+let watchId = null;
+// =================
+
 const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzVbc7o8oixOV3PBciCFlCrYmqDDi-zceWGGsVpk7T1sBtYKkfUWANtLUDaF45KLr6p/exec";
 
 function obtenerUbicacion() {
@@ -42,6 +46,67 @@ navigator.geolocation.getCurrentPosition(
 );
 
 }
+
+// === AGREGADO ===
+// Nueva función SOLO para mejorar precisión al volver a capturar
+function obtenerUbicacionPrecisa() {
+
+if (!navigator.geolocation) {
+mostrarMensaje("Tu navegador no soporta geolocalización", false);
+return;
+}
+
+// Detener seguimiento anterior si existía
+if (watchId !== null) {
+navigator.geolocation.clearWatch(watchId);
+watchId = null;
+}
+
+ubicacionConfirmada = false;
+mostrarMensaje("Mejorando precisión de ubicación...", true);
+
+watchId = navigator.geolocation.watchPosition(
+function (pos) {
+const lat = pos.coords.latitude;
+const lon = pos.coords.longitude;
+const accuracy = pos.coords.accuracy;
+
+document.getElementById("latitud").value = lat;
+document.getElementById("longitud").value = lon;
+
+if (!map) {
+map = L.map("map").setView([lat, lon], 17);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+attribution: "© OpenStreetMap"
+}).addTo(map);
+}
+
+if (marker) {
+map.removeLayer(marker);
+}
+
+marker = L.marker([lat, lon]).addTo(map);
+map.setView([lat, lon], 17);
+
+// Cuando la precisión ya es buena, detenemos el GPS
+if (accuracy <= 10) { // metros (ajustable)
+navigator.geolocation.clearWatch(watchId);
+watchId = null;
+ubicacionConfirmada = true;
+mostrarMensaje("Ubicación precisa obtenida (" + Math.round(accuracy) + " m)", true);
+}
+},
+function (error) {
+mostrarMensaje("No se pudo obtener la ubicación GPS", false);
+},
+{
+enableHighAccuracy: true,
+maximumAge: 0,   // evita cache
+timeout: 20000
+}
+);
+}
+// === FIN AGREGADO ===
 
 // Captura de video
 navigator.mediaDevices.getUserMedia({ video: true })
