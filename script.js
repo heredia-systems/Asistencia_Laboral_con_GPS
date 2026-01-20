@@ -1,73 +1,91 @@
 let map;
 let marker;
-let watchId = null; // 🔹 NUEVO: para reiniciar GPS
+let watchId = null; // Para poder cancelar lecturas anteriores
+
 let ubicacionConfirmada = false;
-let imagenBase64 = ""; // Imagen capturada
+let mejorAccuracy = Infinity;
+let imagenBase64 = ""; // Variable global para la imagen
 
 const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbzVbc7o8oixOV3PBciCFlCrYmqDDi-zceWGGsVpk7T1sBtYKkfUWANtLUDaF45KLr6p/exec";
 
+// ==========================
+// 📍 OBTENER UBICACIÓN GPS (MEJORADO)
+// ==========================
 function obtenerUbicacion() {
     if (!navigator.geolocation) {
         mostrarMensaje("Tu navegador no soporta geolocalización", false);
         return;
     }
 
-    // 🔹 Reiniciar estado cada vez que se pulsa el botón
+    // Reiniciar estado cada vez que se pulsa el botón
     ubicacionConfirmada = false;
+    mejorAccuracy = Infinity;
+    document.getElementById("estadoGPS").innerText = "Buscando ubicación…";
 
-    // 🔹 Cancelar intento anterior si existía
+    // Cancelar escucha anterior si existe
     if (watchId !== null) {
         navigator.geolocation.clearWatch(watchId);
         watchId = null;
     }
 
+    // Iniciar nueva escucha
     watchId = navigator.geolocation.watchPosition(
-        function (pos) {
+        (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
+            const acc = pos.coords.accuracy; // metros
 
-            document.getElementById("latitud").value = lat;
-            document.getElementById("longitud").value = lon;
+            // Guardar solo la mejor lectura
+            if (acc < mejorAccuracy) {
+                mejorAccuracy = acc;
 
-            if (!map) {
-                map = L.map("map").setView([lat, lon], 17);
-                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                    attribution: "© OpenStreetMap"
-                }).addTo(map);
+                document.getElementById("latitud").value = lat;
+                document.getElementById("longitud").value = lon;
+
+                if (!map) {
+                    map = L.map("map").setView([lat, lon], 17);
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: "© OpenStreetMap"
+                    }).addTo(map);
+                }
+
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+
+                marker = L.marker([lat, lon]).addTo(map);
+                map.setView([lat, lon], 17);
+
+                document.getElementById("estadoGPS").innerText =
+                    Precisión actual: ±${Math.round(acc)} m;
             }
 
-            if (marker) {
-                map.removeLayer(marker);
+            // Si la precisión es buena (<20 m), confirmamos y detenemos
+            if (acc <= 20) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                ubicacionConfirmada = true;
+                document.getElementById("estadoGPS").innerText = "Ubicación precisa obtenida ✅";
+                mostrarMensaje("Ubicación GPS confirmada", true);
             }
 
-            marker = L.marker([lat, lon]).addTo(map);
-            map.setView([lat, lon], 17);
-
-            ubicacionConfirmada = true;
-            mostrarMensaje("Ubicación obtenida correctamente", true);
-
-            // 🔹 Detener GPS tras obtener una lectura
-            navigator.geolocation.clearWatch(watchId);
-            watchId = null;
         },
-        function () {
-            mostrarMensaje("No se pudo obtener la ubicación GPS", false);
+        (error) => {
+            mostrarMensaje("No se pudo obtener la ubicación GPS. Active el GPS.", false);
+            document.getElementById("estadoGPS").innerText = "";
         },
-        {
-            enableHighAccuracy: true,
-            maximumAge: 0,
-            timeout: 15000
-        }
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 }
     );
 }
 
 // ==========================
-// 📸 CÁMARA (NO TOCADA)
+// 📸 CÁMARA
 // ==========================
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
     const video = document.getElementById("video");
     video.srcObject = stream;
+    video.onloadedmetadata = () => video.play();
 })
 .catch(err => {
     mostrarMensaje("No se puede acceder a la cámara: " + err, false);
@@ -104,11 +122,12 @@ function tomarFoto() {
     ctx.drawImage(video, 0, 0, width, height);
 
     imagenBase64 = canvas.toDataURL("image/jpeg", 0.8);
+
     mostrarMensaje("Imagen capturada correctamente", true);
 }
 
 // ==========================
-// 📤 ENVÍO
+// 📤 ENVIAR MARCACIÓN
 // ==========================
 function enviarMarcacion() {
     if (!ubicacionConfirmada) {
@@ -152,17 +171,38 @@ function enviarMarcacion() {
             mostrarMensaje("Marcación registrada correctamente", true);
         } else if (respuesta === "DUPLICADO") {
             mostrarMensaje("Ya existe una marcación de este tipo hoy", false);
+        } else if (respuesta === "DOMINIO_NO_AUTORIZADO") {
+            mostrarMensaje("Correo no autorizado", false);
+        } else if (respuesta === "DATOS_INCOMPLETOS") {
+            mostrarMensaje("Faltan datos obligatorios", false);
         } else {
             mostrarMensaje("Error: " + respuesta, false);
         }
     })
-    .catch(() => {
+    .catch(error => {
         mostrarMensaje("Error de conexión con el servidor", false);
+        console.error(error);
     });
 }
 
 // ==========================
-// 🧾 MENSAJES
+// GOOGLE SIGN-IN
+// ==========================
+function handleCredentialResponse(response) {
+    const data = JSON.parse(atob(response.credential.split('.')[1]));
+    const email = data.email.toLowerCase();
+
+    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
+        mostrarMensaje("Correo no autorizado", false);
+        return;
+    }
+
+    document.getElementById("correo").value = email;
+    mostrarMensaje("Sesión iniciada como: " + email, true);
+}
+
+// ==========================
+// MENSAJES
 // ==========================
 function mostrarMensaje(texto, exito) {
     const div = document.getElementById("mensaje");
