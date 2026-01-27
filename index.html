@@ -25,21 +25,18 @@
             background-color: rgba(0, 51, 102, 0.55);
             padding-bottom: 40px;
         }
-        .banner {
-    width: 100%;
-    background: transparent;
-    text-align: center;
-    padding: 12px 0;
-}
 
-.banner img {
-    width: 100%;
-    max-height: 90px;      /* controla el alto */
-    object-fit: contain;  /* no se deforma */
-    display: block;
-    margin: 0 auto;
-}
+        /* ===== CAMBIO SOLO DEL BANNER ===== */
+        .banner {
+            width: 100%;
+            height: 100px; /* ajusta solo si quieres más o menos alto */
+            background-image: url("https://i.imgur.com/nHAaQrd.png");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
         }
+        /* ===== FIN CAMBIO BANNER ===== */
+
         h1 {
             text-align: center;
             color: #ffffff;
@@ -83,7 +80,6 @@
             border: 2px solid #003366;
         }
 
-        /* Estilos para mensajes */
         #mensaje {
             margin: 10px 0;
             font-size: 18px;
@@ -106,9 +102,9 @@
 <body>
 <div class="overlay">
 
-    <div class="banner">
-        <img src="https://i.imgur.com/nHAaQrd.png">
-    </div>
+    <!-- ===== BANNER (NO SE QUITA, SOLO SE SIMPLIFICA) ===== -->
+    <div class="banner"></div>
+    <!-- ===== FIN BANNER ===== -->
 
     <h1>Registro de Marcación Institucional con GPS</h1>
 
@@ -150,25 +146,19 @@
             </select>
         </div>
 
-        <!-- === AJUSTE VISUAL: OCULTAR LATITUD Y LONGITUD (NO FUNCIONAL) === -->
         <div style="display:none;">
-
             <div class="fila">
                 <label>Latitud</label>
                 <input type="text" id="latitud" readonly>
             </div>
-
             <div class="fila">
                 <label>Longitud</label>
                 <input type="text" id="longitud" readonly>
             </div>
-
         </div>
-        <!-- === FIN AJUSTE VISUAL === -->
 
         <div id="map"></div>
 
-        <!-- Captura de imagen -->
         <div class="fila">
             <label>Captura de imagen</label>
             <video id="video" width="100%" height="200" autoplay></video>
@@ -176,7 +166,6 @@
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
-        <!-- DIV PARA MENSAJES -->
         <div id="mensaje"></div>
 
         <div class="fila">
@@ -191,13 +180,9 @@
 
 </div>
 
-<!-- Leaflet -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Script JS -->
 <script src="script.js"></script>
 
-<!-- GOOGLE SIGN-IN Y VALIDACIÓN DE DOMINIOS -->
 <script>
 function handleCredentialResponse(response) {
     const data = JSON.parse(atob(response.credential.split('.')[1]));
