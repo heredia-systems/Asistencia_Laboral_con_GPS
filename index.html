@@ -25,17 +25,19 @@
             background-color: rgba(0, 51, 102, 0.55);
             padding-bottom: 40px;
         }
-        banner {
+        .banner {
     width: 100%;
     background: transparent;
     text-align: center;
-    padding: 8px 0;
+    padding: 12px 0;
 }
 
 .banner img {
-    max-width: 260px;   /* controla el tamaño */
-    width: 80%;
-    height: auto;
+    width: 100%;
+    max-height: 90px;      /* controla el alto */
+    object-fit: contain;  /* no se deforma */
+    display: block;
+    margin: 0 auto;
 }
         }
         h1 {
