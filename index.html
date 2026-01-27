@@ -182,33 +182,5 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="script.js"></script>
 
-<script>
-function handleCredentialResponse(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = data.email.toLowerCase();
-
-    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
-        mostrarMensaje("Correo no autorizado", false);
-        return;
-    }
-
-    document.getElementById("correo").value = email;
-    mostrarMensaje("Sesión iniciada como: " + email, true);
-}
-
-function mostrarMensaje(texto, exito) {
-    const div = document.getElementById("mensaje");
-    div.style.display = "block";
-    div.textContent = "";
-
-    const span = document.createElement("span");
-    span.textContent = exito ? "✔" : "✖";
-    div.appendChild(span);
-    div.appendChild(document.createTextNode(texto));
-
-    div.className = exito ? "exito" : "error";
-}
-</script>
-
 </body>
 </html>
