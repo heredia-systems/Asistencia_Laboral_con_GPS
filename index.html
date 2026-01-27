@@ -27,14 +27,14 @@
             padding-bottom: 40px;
         }
 
-        /* ===== CAMBIO SOLO DEL BANNER ===== */
+        /* ===== ÚNICO CAMBIO: BANNER ===== */
         .banner {
             width: 100%;
-            height: 110px;
+            height: 95px;
             background-image: url("https://i.imgur.com/nHAaQrd.png");
             background-repeat: no-repeat;
             background-position: center;
-            background-size: contain;
+            background-size: 100% 100%;
         }
         /* ===== FIN CAMBIO BANNER ===== */
 
@@ -113,116 +113,116 @@
 
 <body>
 
-<!-- ===== BANNER FUERA DEL OVERLAY ===== -->
-<div class="banner"></div>
-<!-- ===== FIN BANNER ===== -->
+    <!-- BANNER -->
+    <div class="banner"></div>
+    <!-- FIN BANNER -->
 
-<div class="overlay">
+    <div class="overlay">
 
-    <h1>Registro de Marcación Institucional con GPS</h1>
+        <h1>Registro de Marcación Institucional con GPS</h1>
 
-    <!-- 🔐 LOGIN GOOGLE -->
-    <div style="text-align:center; margin-bottom:15px;">
-        <div id="g_id_onload"
-             data-client_id="942537115951-3iom1kgrq385tvcofnovdv769sgafsb5.apps.googleusercontent.com"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
+        <!-- 🔐 LOGIN GOOGLE -->
+        <div style="text-align:center; margin-bottom:15px;">
+            <div id="g_id_onload"
+                 data-client_id="942537115951-3iom1kgrq385tvcofnovdv769sgafsb5.apps.googleusercontent.com"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin"></div>
         </div>
-        <div class="g_id_signin"></div>
+
+        <form id="gpsForm">
+
+            <div class="fila">
+                <label>Correo institucional</label>
+                <input type="email" id="correo" readonly required>
+            </div>
+
+            <div class="fila">
+                <label>Nombres y apellidos</label>
+                <input type="text" id="responsable" required>
+            </div>
+
+            <div class="fila">
+                <label>Institución</label>
+                <input type="text" id="institucion" required>
+            </div>
+
+            <div class="fila">
+                <label>Tipo de marcación</label>
+                <select id="tipo_marcacion" required>
+                    <option value="">Seleccione</option>
+                    <option value="entrada">Entrada</option>
+                    <option value="salida_almuerzo">Salida almuerzo</option>
+                    <option value="retorno_almuerzo">Retorno almuerzo</option>
+                    <option value="salida">Salida laboral</option>
+                </select>
+            </div>
+
+            <div style="display:none;">
+                <div class="fila">
+                    <label>Latitud</label>
+                    <input type="text" id="latitud" readonly>
+                </div>
+                <div class="fila">
+                    <label>Longitud</label>
+                    <input type="text" id="longitud" readonly>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="fila">
+                <label>Captura de imagen</label>
+                <video id="video" width="100%" height="200" autoplay></video>
+                <button type="button" onclick="tomarFoto()">Capturar imagen</button>
+                <canvas id="canvas" style="display:none;"></canvas>
+            </div>
+
+            <div id="mensaje"></div>
+
+            <div class="fila">
+                <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
+            </div>
+
+            <div class="fila">
+                <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
+            </div>
+
+        </form>
+
     </div>
 
-    <form id="gpsForm">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="script.js"></script>
 
-        <div class="fila">
-            <label>Correo institucional</label>
-            <input type="email" id="correo" readonly required>
-        </div>
+    <script>
+    function handleCredentialResponse(response) {
+        const data = JSON.parse(atob(response.credential.split('.')[1]));
+        const email = data.email.toLowerCase();
 
-        <div class="fila">
-            <label>Nombres y apellidos</label>
-            <input type="text" id="responsable" required>
-        </div>
+        if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
+            mostrarMensaje("Correo no autorizado", false);
+            return;
+        }
 
-        <div class="fila">
-            <label>Institución</label>
-            <input type="text" id="institucion" required>
-        </div>
-
-        <div class="fila">
-            <label>Tipo de marcación</label>
-            <select id="tipo_marcacion" required>
-                <option value="">Seleccione</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida_almuerzo">Salida almuerzo</option>
-                <option value="retorno_almuerzo">Retorno almuerzo</option>
-                <option value="salida">Salida laboral</option>
-            </select>
-        </div>
-
-        <div style="display:none;">
-            <div class="fila">
-                <label>Latitud</label>
-                <input type="text" id="latitud" readonly>
-            </div>
-            <div class="fila">
-                <label>Longitud</label>
-                <input type="text" id="longitud" readonly>
-            </div>
-        </div>
-
-        <div id="map"></div>
-
-        <div class="fila">
-            <label>Captura de imagen</label>
-            <video id="video" width="100%" height="200" autoplay></video>
-            <button type="button" onclick="tomarFoto()">Capturar imagen</button>
-            <canvas id="canvas" style="display:none;"></canvas>
-        </div>
-
-        <div id="mensaje"></div>
-
-        <div class="fila">
-            <button type="button" onclick="obtenerUbicacion()">Obtener ubicación</button>
-        </div>
-
-        <div class="fila">
-            <button type="button" onclick="enviarMarcacion()">Registrar marcación</button>
-        </div>
-
-    </form>
-
-</div>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="script.js"></script>
-
-<script>
-function handleCredentialResponse(response) {
-    const data = JSON.parse(atob(response.credential.split('.')[1]));
-    const email = data.email.toLowerCase();
-
-    if (!email.endsWith("@docentes.educacion.edu.ec") && !email.endsWith("@minedec.gob.ec")) {
-        mostrarMensaje("Correo no autorizado", false);
-        return;
+        document.getElementById("correo").value = email;
+        mostrarMensaje("Sesión iniciada como: " + email, true);
     }
 
-    document.getElementById("correo").value = email;
-    mostrarMensaje("Sesión iniciada como: " + email, true);
-}
+    function mostrarMensaje(texto, exito) {
+        const div = document.getElementById("mensaje");
+        div.style.display = "block";
+        div.textContent = "";
 
-function mostrarMensaje(texto, exito) {
-    const div = document.getElementById("mensaje");
-    div.style.display = "block";
-    div.textContent = "";
+        const span = document.createElement("span");
+        span.textContent = exito ? "✔" : "✖";
+        div.appendChild(span);
+        div.appendChild(document.createTextNode(texto));
 
-    const span = document.createElement("span");
-    span.textContent = exito ? "✔" : "✖";
-    div.appendChild(span);
-    div.appendChild(document.createTextNode(texto));
-
-    div.className = exito ? "exito" : "error";
-}
-</script>
+        div.className = exito ? "exito" : "error";
+    }
+    </script>
 
 </body>
 </html>
