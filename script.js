@@ -4,7 +4,7 @@ let ubicacionConfirmada = false;
 let imagenBase64 = ""; 
 let watchId = null;
 
-const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbytPu0Z1cW43xDzp4pj2Htrwie_BxuSi9PXPCmBF-OHNAy6f5tpMvvqTK6r6B8ttOJU/exec";
+const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxC6dpPrLwdB0hwdhM6ybKiKcBefkl2QeeGQ2TXaRQdb5yNZHmroIJrkqiDVSJlnFI/exec";
 
 function mostrarMensaje(texto, exito) {
     const div = document.getElementById("mensaje");
@@ -223,10 +223,67 @@ function handleCredentialResponse(response) {
     .then(respuesta => {
         if (respuesta === "NO_REGISTRADO") {
             mostrarMensaje("Usuario nuevo: complete su registro", true);
+            // Mostrar formulario de registro inicial
+            document.getElementById("registroInicial").style.display = "block";
+            document.getElementById("correo_registro").value = email;
+            document.getElementById("fecha_registro").value = new Date().toISOString().split('T')[0];
+            // Ocultar formulario de marcación hasta completar registro
+            document.getElementById("gpsForm").style.display = "none";
         } else if (respuesta === "REGISTRADO") {
             mostrarMensaje("Usuario existente: puede registrar su marcación", true);
+            // Mostrar formulario GPS
+            document.getElementById("gpsForm").style.display = "block";
+            document.getElementById("registroInicial").style.display = "none";
         } else {
             mostrarMensaje("Error al verificar usuario: " + respuesta, false);
         }
+    });
+}
+
+// ==== GUARDAR REGISTRO INICIAL ====
+function guardarRegistroInicial() {
+    const correo = document.getElementById("correo_registro").value;
+    const nombres = document.getElementById("nombres_registro").value;
+    const zona = document.getElementById("zona_registro").value;
+    const distrito = document.getElementById("distrito_registro").value;
+    const institucion = document.getElementById("institucion_registro").value;
+    const fecha = document.getElementById("fecha_registro").value;
+
+    if (!nombres || !zona || !distrito || !institucion || !fecha) {
+        mostrarMensaje("Complete todos los campos del registro inicial.", false);
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("accion", "registrarUsuario");
+    formData.append("correo", correo);
+    formData.append("nombres", nombres);
+    formData.append("zona", zona);
+    formData.append("distrito", distrito);
+    formData.append("institucion", institucion);
+    formData.append("fecha", fecha);
+
+    fetch(URL_WEB_APP, {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.text())
+    .then(respuesta => {
+        if (respuesta === "OK") {
+            mostrarMensaje("Registro inicial guardado correctamente", true);
+            // Mostrar formulario GPS
+            document.getElementById("gpsForm").style.display = "block";
+            document.getElementById("registroInicial").style.display = "none";
+            // Autocompletar campos GPS con datos del registro
+            document.getElementById("correo").value = correo;
+            document.getElementById("responsable").value = nombres;
+            document.getElementById("institucion").value = institucion;
+        } else {
+            mostrarMensaje("Error al guardar registro: " + respuesta, false);
+        }
+    })
+    .catch(error => {
+        mostrarMensaje("Error de conexión al guardar registro", false);
+        console.error(error);
     });
 }

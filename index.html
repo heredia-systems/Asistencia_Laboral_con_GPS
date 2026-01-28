@@ -98,6 +98,17 @@
         #mensaje.error {
             color: red;
         }
+
+        /* Nueva sección registro inicial */
+        #registroInicial {
+            display: none;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 25px;
+            max-width: 620px;
+            margin: auto;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 
@@ -117,6 +128,46 @@
         <div class="g_id_signin"></div>
     </div>
 
+    <!-- REGISTRO INICIAL USUARIO -->
+    <form id="registroInicial">
+        <h2>Registro inicial de usuario</h2>
+
+        <div class="fila">
+            <label>Correo institucional</label>
+            <input type="email" id="correo_registro" readonly required>
+        </div>
+
+        <div class="fila">
+            <label>Nombres y apellidos</label>
+            <input type="text" id="nombres_registro" required>
+        </div>
+
+        <div class="fila">
+            <label>Zona</label>
+            <input type="text" id="zona_registro" required>
+        </div>
+
+        <div class="fila">
+            <label>Distrito</label>
+            <input type="text" id="distrito_registro" required>
+        </div>
+
+        <div class="fila">
+            <label>Institución</label>
+            <input type="text" id="institucion_registro" required>
+        </div>
+
+        <div class="fila">
+            <label>Fecha de registro</label>
+            <input type="text" id="fecha_registro" readonly>
+        </div>
+
+        <div class="fila">
+            <button type="button" onclick="guardarRegistroInicial()">Guardar registro inicial</button>
+        </div>
+    </form>
+
+    <!-- FORMULARIO DE MARCACIÓN GPS -->
     <form id="gpsForm">
 
         <div class="fila">
