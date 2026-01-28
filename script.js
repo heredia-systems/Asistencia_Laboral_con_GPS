@@ -6,20 +6,26 @@ let watchId = null;
 
 const URL_WEB_APP = "https://script.google.com/macros/s/AKfycbxC6dpPrLwdB0hwdhM6ybKiKcBefkl2QeeGQ2TXaRQdb5yNZHmroIJrkqiDVSJlnFI/exec";
 
+/* ================= ALERTA MODAL PROFESIONAL ================= */
+
 function mostrarMensaje(texto, exito) {
-    const div = document.getElementById("mensaje");
-    div.style.display = "block";
-    div.textContent = "";
+    const overlay = document.getElementById("modalAlerta");
+    const box = document.getElementById("modalBox");
+    const icon = document.getElementById("modalIcon");
+    const text = document.getElementById("modalText");
 
-    const span = document.createElement("span");
-    span.textContent = exito ? "✔" : "✖";
-    div.appendChild(span);
-    div.appendChild(document.createTextNode(texto));
-
-    div.className = exito ? "exito" : "error";
+    overlay.style.display = "flex";
+    box.className = "modal-box " + (exito ? "success" : "error");
+    icon.textContent = exito ? "✔" : "✖";
+    text.textContent = texto;
 }
 
-// ==== GPS ====
+function cerrarModal() {
+    document.getElementById("modalAlerta").style.display = "none";
+}
+
+/* ================= GPS ================= */
+
 function obtenerUbicacion() {
     if (!navigator.geolocation) {
         mostrarMensaje("Tu navegador no soporta geolocalización", false);
@@ -106,7 +112,8 @@ function obtenerUbicacionPrecisa() {
     );
 }
 
-// ==== CÁMARA ====
+/* ================= CÁMARA ================= */
+
 navigator.mediaDevices.getUserMedia({ video: true })
 .then(stream => {
     const video = document.getElementById("video");
@@ -147,7 +154,8 @@ function tomarFoto() {
     mostrarMensaje("Imagen capturada correctamente", true);
 }
 
-// ==== ENVÍO ====
+/* ================= ENVÍO ================= */
+
 function enviarMarcacion() {
     if (!ubicacionConfirmada) {
         mostrarMensaje("Debe obtener la ubicación GPS antes de registrar.", false);
@@ -204,7 +212,8 @@ function enviarMarcacion() {
     });
 }
 
-// ==== GOOGLE SIGN-IN ====
+/* ================= GOOGLE SIGN-IN ================= */
+
 function handleCredentialResponse(response) {
     const data = JSON.parse(atob(response.credential.split('.')[1]));
     const email = data.email.toLowerCase();
@@ -217,21 +226,17 @@ function handleCredentialResponse(response) {
     document.getElementById("correo").value = email;
     mostrarMensaje("Sesión iniciada como: " + email, true);
 
-    // Verificar usuario en la hoja Usuarios
     fetch(URL_WEB_APP + "?accion=verificarUsuario&correo=" + encodeURIComponent(email))
     .then(res => res.text())
     .then(respuesta => {
         if (respuesta === "NO_REGISTRADO") {
             mostrarMensaje("Usuario nuevo: complete su registro", true);
-            // Mostrar formulario de registro inicial
             document.getElementById("registroInicial").style.display = "block";
             document.getElementById("correo_registro").value = email;
             document.getElementById("fecha_registro").value = new Date().toISOString().split('T')[0];
-            // Ocultar formulario de marcación hasta completar registro
             document.getElementById("gpsForm").style.display = "none";
         } else if (respuesta === "REGISTRADO") {
             mostrarMensaje("Usuario existente: puede registrar su marcación", true);
-            // Mostrar formulario GPS
             document.getElementById("gpsForm").style.display = "block";
             document.getElementById("registroInicial").style.display = "none";
         } else {
@@ -240,7 +245,8 @@ function handleCredentialResponse(response) {
     });
 }
 
-// ==== GUARDAR REGISTRO INICIAL ====
+/* ================= REGISTRO INICIAL ================= */
+
 function guardarRegistroInicial() {
     const correo = document.getElementById("correo_registro").value;
     const nombres = document.getElementById("nombres_registro").value;
@@ -271,10 +277,8 @@ function guardarRegistroInicial() {
     .then(respuesta => {
         if (respuesta === "OK") {
             mostrarMensaje("Registro inicial guardado correctamente", true);
-            // Mostrar formulario GPS
             document.getElementById("gpsForm").style.display = "block";
             document.getElementById("registroInicial").style.display = "none";
-            // Autocompletar campos GPS con datos del registro
             document.getElementById("correo").value = correo;
             document.getElementById("responsable").value = nombres;
             document.getElementById("institucion").value = institucion;
